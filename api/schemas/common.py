@@ -1,16 +1,12 @@
 from pydantic import BaseModel
-from datetime import datetime
 
 
-class ApiResponse(BaseModel):
+class SuccessResponse(
 
-    success: bool
+    BaseModel
 
-    message: str | None = None
-
-
-class EventResponse(BaseModel):
+):
 
     success: bool
 
-    event_id: str
+    message: str

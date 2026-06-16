@@ -1,56 +1,18 @@
-from fastapi import (
+from fastapi import Header
 
-    Header,
+from typing import Optional
 
-    HTTPException
-)
 
-from api.auth.security import (
-    decode_token
-)
+def get_merchant_id(
 
-def get_current_user(
+    x_merchant_id:
 
-    authorization:
-    str = Header(None)
+    Optional[str] = Header(
 
-):
-    
-        if not authorization:
-
-        raise HTTPException(
-
-            status_code=401,
-
-            detail=
-                "Missing token"
-        )
-    token = (
-
-        authorization
-
-        .replace(
-
-            "Bearer ",
-
-            ""
-
-        )
+        default=None
 
     )
 
-    try:
+):
 
-        return decode_token(
-            token
-        )
-
-    except Exception:
-
-        raise HTTPException(
-
-            status_code=401,
-
-            detail=
-                "Invalid token"
-        )
+    return x_merchant_id

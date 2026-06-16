@@ -1,39 +1,16 @@
-from fastapi import (
+from fastapi import APIRouter
 
-    Depends
-)
+router = APIRouter()
 
-from api.auth.dependencies import (
-    get_current_user
-)
 
-@router.get(
-    "/{merchant_id}"
-)
-def dashboard(
+@router.get("/")
 
-    merchant_id: str,
+def dashboard():
 
-    user=Depends(
-        get_current_user
-    )
+    return {
 
-):
-    
-    if (
+        "status":
 
-    user["merchant_id"]
+            "dashboard_online"
 
-    !=
-
-    merchant_id
-
-):
-
-    raise HTTPException(
-
-        status_code=403,
-
-        detail=
-            "Forbidden"
-    )
+    }

@@ -1,10 +1,7 @@
-from pydantic import (
-    BaseModel,
-    Field
-)
+from pydantic import BaseModel
 
 
-class CreateProductRequest(
+class ProductCreateRequest(
 
     BaseModel
 
@@ -12,22 +9,8 @@ class CreateProductRequest(
 
     merchant_id: str
 
-    sku: str = Field(
-        min_length=1,
-        max_length=64
-    )
+    sku: str
 
-    name: str = Field(
-        min_length=1,
-        max_length=255
-    )
+    name: str
 
-    selling_price: float = Field(
-        gt=0
-    )
-
-    cost_price: float = Field(
-        ge=0
-    )
-
-    unit: str
+    price: float
