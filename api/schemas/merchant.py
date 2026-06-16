@@ -1,6 +1,6 @@
 from pydantic import (
     BaseModel,
-    Field
+    EmailStr
 )
 
 class CreateMerchantRequest(
@@ -15,4 +15,4 @@ class CreateMerchantRequest(
 
     phone: str
 
-    email: str | None = None
+    email: EmailStr

@@ -10,19 +10,17 @@ from core.ledger.event_factory import (
 
 def create_product(
 
-    merchant_id: str,
+    merchant_id,
 
-    sku: str,
+    sku,
 
-    name: str,
+    name,
 
-    selling_price: float,
+    category,
 
-    cost_price: float,
+    unit_price,
 
-    unit: str,
-
-    previous_hash: str
+    previous_hash
 
 ):
 
@@ -37,14 +35,11 @@ def create_product(
         "name":
             name,
 
-        "selling_price":
-            selling_price,
+        "category":
+            category,
 
-        "cost_price":
-            cost_price,
-
-        "unit":
-            unit
+        "unit_price":
+            unit_price
     }
 
     return create_event(

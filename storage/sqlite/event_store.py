@@ -1,42 +1,51 @@
 import json
 import sqlite3
 
-from core.events.base import Event
-from sync.status import SyncStatus
+from typing import List
 
 
 class EventStore:
 
     def __init__(
+
         self,
+
         db_path: str
+
     ):
 
-        self.conn = sqlite3.connect(
-            db_path
-        )
-
-        self.conn.row_factory = (
-            sqlite3.Row
-        )
+        self.db_path = db_path
 
     def append(
+
         self,
-        event: Event
+
+        event
+
     ):
 
-        self.conn.execute(
+        conn = sqlite3.connect(
+            self.db_path
+        )
+
+        conn.execute(
 
             """
-            INSERT INTO events(
+            INSERT INTO events (
 
                 event_id,
+
                 merchant_id,
+
                 event_type,
+
                 timestamp,
 
                 previous_hash,
+
                 payload_hash,
+
+                event_hash,
 
                 payload,
 
@@ -44,9 +53,7 @@ class EventStore:
 
             )
 
-            VALUES(
-                ?, ?, ?, ?, ?, ?, ?, ?
-            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
 
             (
@@ -63,52 +70,255 @@ class EventStore:
 
                 event.payload_hash,
 
+                event.event_hash,
+
                 json.dumps(
                     event.payload
                 ),
 
-                SyncStatus.PENDING.value
+                "PENDING"
+
             )
+
         )
 
-        self.conn.commit()
+        conn.commit()
 
-def latest_hash(
+        conn.close()
 
-    self,
+    def replay_events(
 
-    merchant_id
+        self,
 
-):
+        merchant_id: str
 
-    row = self.latest_event(
-        merchant_id
-    )
+    ) -> List[dict]:
 
-    if not row:
+        conn = sqlite3.connect(
+            self.db_path
+        )
 
-        return "GENESIS"
+        conn.row_factory = (
+            sqlite3.Row
+        )
 
-    return row[
-        "event_hash"
-    ]
+        rows = conn.execute(
 
-def replay_events(
+            """
+            SELECT *
+            FROM events
+            WHERE merchant_id = ?
+            ORDER BY timestamp ASC
+            """,
 
-    self,
+            (merchant_id,)
 
-    merchant_id
+        ).fetchall()
 
-):
+        conn.close()
 
-    rows = self.all_events(
-        merchant_id
-    )
+        events = []
 
-    return [
+        for row in rows:
 
-        dict(row)
+            event = dict(row)
 
-        for row in rows
+            event["payload"] = json.loads(
 
-    ]
+                event["payload"]
+
+            )
+
+            events.append(
+                event
+            )
+
+        return events
+    
+    def latest_hash(
+
+        self,
+
+        merchant_id: str
+
+    ) -> str:
+
+        conn = sqlite3.connect(
+            self.db_path
+        )
+
+        row = conn.execute(
+
+            """
+            SELECT event_hash
+
+            FROM events
+
+            WHERE merchant_id = ?
+
+            ORDER BY timestamp DESC
+
+            LIMIT 1
+            """,
+
+            (merchant_id,)
+
+        ).fetchone()
+
+        conn.close()
+
+        if not row:
+
+            return "GENESIS"
+
+        return row[0]
+    
+    def count_events(
+
+        self,
+
+        merchant_id: str
+
+    ) -> int:
+
+        conn = sqlite3.connect(
+            self.db_path
+        )
+
+        row = conn.execute(
+
+            """
+            SELECT COUNT(*)
+
+            FROM events
+
+            WHERE merchant_id = ?
+            """,
+
+            (merchant_id,)
+
+        ).fetchone()
+
+        conn.close()
+
+        return row[0]
+    
+    def pending_events(
+
+        self,
+
+        merchant_id: str
+
+    ):
+
+        conn = sqlite3.connect(
+            self.db_path
+        )
+
+        conn.row_factory = (
+            sqlite3.Row
+        )
+
+        rows = conn.execute(
+
+            """
+            SELECT *
+
+            FROM events
+
+            WHERE merchant_id = ?
+
+            AND sync_status = 'PENDING'
+
+            ORDER BY timestamp ASC
+            """,
+
+            (merchant_id,)
+
+        ).fetchall()
+
+        conn.close()
+
+        return [
+
+            dict(row)
+
+            for row in rows
+
+        ]
+    
+    def mark_synced(
+
+        self,
+
+        event_id: str
+
+    ):
+
+        conn = sqlite3.connect(
+            self.db_path
+        )
+
+        conn.execute(
+
+            """
+            UPDATE events
+
+            SET sync_status='SYNCED'
+
+            WHERE event_id=?
+            """,
+
+            (event_id,)
+
+        )
+
+        conn.commit()
+
+        conn.close()
+
+    def get_event(
+
+        self,
+
+        event_id: str
+
+    ):
+
+        conn = sqlite3.connect(
+            self.db_path
+        )
+
+        conn.row_factory = (
+            sqlite3.Row
+        )
+
+        row = conn.execute(
+
+            """
+            SELECT *
+
+            FROM events
+
+            WHERE event_id=?
+            """,
+
+            (event_id,)
+
+        ).fetchone()
+
+        conn.close()
+
+        if not row:
+
+            return None
+
+        event = dict(row)
+
+        event["payload"] = json.loads(
+
+            event["payload"]
+
+        )
+
+        return event

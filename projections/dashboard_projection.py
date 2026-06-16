@@ -1,58 +1,90 @@
+from projections.sales_projection import (
+    SalesProjection
+)
+
+from projections.inventory_projection import (
+    InventoryProjection
+)
+
+from projections.debt_projection import (
+    DebtProjection
+)
+
+from projections.expense_projection import (
+    ExpenseProjection
+)
+
+from projections.branch_projection import (
+    BranchProjection
+)
+
+
 class DashboardProjection:
 
-    def __init__(
+    def build(
 
         self,
 
-        sales_projection,
-
-        debt_projection,
-
-        inventory_projection
+        events
 
     ):
 
-        self.sales_projection = (
-            sales_projection
-        )
+        sales = SalesProjection()
 
-        self.debt_projection = (
-            debt_projection
-        )
+        inventory = InventoryProjection()
 
-        self.inventory_projection = (
-            inventory_projection
-        )
+        debt = DebtProjection()
 
-    def snapshot(self):
+        expenses = ExpenseProjection()
+
+        branches = BranchProjection()
+
+        sales.replay(events)
+
+        inventory.replay(events)
+
+        debt.replay(events)
+
+        expenses.replay(events)
+
+        branches.replay(events)
 
         return {
 
-            "sales_total":
+            "total_sales":
 
-                self.sales_projection
-                .total(),
+                sales.total(),
 
             "sales_count":
 
-                self.sales_projection
-                .count(),
+                sales.count(),
 
-            "customer_debt":
-
-                sum(
-
-                    self.debt_projection
-                    .balances.values()
-
-                ),
-
-            "tracked_products":
+            "products_tracked":
 
                 len(
+                    inventory.stock
+                ),
 
-                    self.inventory_projection
-                    .stock
+            "inventory_units":
 
+                sum(
+                    inventory.stock.values()
+                ),
+
+            "outstanding_debt":
+
+                sum(
+                    debt.balances.values()
+                ),
+
+            "expenses":
+
+                expenses.total_expenses,
+
+            "branch_transfers":
+
+                len(
+                    branches.transfers
                 )
+
         }

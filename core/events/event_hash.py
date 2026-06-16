@@ -2,34 +2,34 @@ import hashlib
 
 def calculate_event_hash(
 
-    event_type,
+    event_type: str,
 
-    merchant_id,
+    merchant_id: str,
 
-    timestamp,
+    timestamp: str,
 
-    previous_hash,
+    previous_hash: str,
 
-    payload_hash
+    payload_hash: str
 
 ):
 
-    body = (
+    raw = (
 
-        event_type +
+        f"{event_type}"
 
-        merchant_id +
+        f"{merchant_id}"
 
-        timestamp +
+        f"{timestamp}"
 
-        previous_hash +
+        f"{previous_hash}"
 
-        payload_hash
+        f"{payload_hash}"
 
     )
 
     return hashlib.sha256(
 
-        body.encode()
+        raw.encode()
 
     ).hexdigest()

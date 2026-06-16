@@ -1,108 +1,192 @@
-AviaPOS Project Paper
-Version: 0.1
-Author: Avia Technologies
-Status: Foundational Architecture Proposal
+# AviaPOS
 
-Executive Summary
-AviaPOS is a lightweight, modular, offline-capable merchant operating system designed for African SMEs. The platform focuses on four core merchant needs: secure payment collection, inventory management, debt and credit tracking, and business visibility.
+AviaPOS is a lightweight Merchant Operating System (Merchant OS) built by Avia Technologies.
 
-AviaPOS is designed around Avia Technologies' event-first philosophy. Critical business events are recorded as hash-linked ledger events to provide auditability and tamper evidence. Non-critical operational activities are timestamped and logged without participating in the hash chain, keeping the system efficient and easy to operate.
+The platform is designed for African SMEs that require reliable sales tracking, inventory management, debt management, branch operations, and financial visibility without the complexity of traditional ERP systems.
 
-The platform is intentionally architected to integrate with RailOne in the future through connector and adapter interfaces, allowing payment routing and settlement capabilities to be added without major schema redesign.
-Problem Statement
-Many SMEs still rely on notebooks, spreadsheets, and fragmented digital tools. This creates challenges in inventory tracking, debt management, reconciliation, reporting, and operational visibility. Existing POS solutions are often too complex, connectivity-dependent, or disconnected from future financial infrastructure.
-Vision
-To become the trusted operating system for African commerce by providing reliable merchant tooling today while establishing a future-ready foundation for payment orchestration and financial interoperability.
-Core Objectives
-• Simple and intuitive merchant experience
-• Secure payment collection and reconciliation
-• Inventory and stock visibility
-• Debt and credit management
-• Offline-first operation
-• Reliable synchronization across devices
-• Privacy-first identity verification
-• Future RailOne compatibility
-• High auditability with low operational overhead
-Architectural Principles
-1. Offline-first
-2. Event-first business design
-3. Hash-chain business events only
-4. Privacy-first KYC
-5. Connector-based integrations
-6. Institution-agnostic architecture
-7. Modular services
-8. State derived from events and projections
-Hash-Chained Business Events
-Only meaningful business events participate in the hash chain.
+---
+
+## Core Principles
+
+### Event-First Design
+
+Every business operation is recorded as a business event.
 
 Examples:
-• SALE_CREATED
-• PAYMENT_RECEIVED
-• DEBT_CREATED
-• DEBT_SETTLED
-• STOCK_RECEIVED
-• STOCK_DEDUCTED
-• EXPENSE_RECORDED
 
-Operational and UI events are not hash chained. They are timestamped and logged separately. This preserves performance while maintaining a verifiable business ledger.
-System Modules
-Identity Module
-Sales Module
-Inventory Module
-Customer Debt & Credit Module
-Expense Module
-Analytics Module
-Synchronization Module
-Connector Framework
-Technology Stack
-Frontend:
-• Flutter (Android first, Web later)
+- Sale Created
+- Inventory Added
+- Inventory Deducted
+- Debt Created
+- Debt Settled
+- Branch Transfer Created
 
-Backend:
-• Python
-• FastAPI
+The event stream acts as the source of truth.
 
-Data Layer:
-• SQLite (local device)
-• PostgreSQL (cloud)
+---
 
-Caching & Sync:
-• Redis
+### Hash-Chained Business Events
 
-Security:
-• JWT Authentication
-• Role-based access control
-• TLS encryption
+Business events are cryptographically linked.
 
-Infrastructure:
-• Docker
-• GitHub Actions
-• Cloud deployment (AWS, Azure, or DigitalOcean)
+Benefits:
 
-Observability:
-• Structured logging
-• Metrics and health monitoring
-KYC and Privacy Model
-AviaPOS will integrate with licensed KYC providers instead of becoming a KYC custodian. Only verification references and compliance metadata are retained. Sensitive identity documents remain with approved providers whenever possible.
-RailOne Integration Strategy
-Phase 1:
-Merchant operations and local event ledger.
+- Auditability
+- Tamper Detection
+- Reliable Business History
+- Event Integrity
 
-Phase 2:
-Payment abstraction layer using connector interfaces.
+Only business-critical events are hash chained.
 
-Phase 3:
-RailOne Adapter integration.
+---
 
-AviaPOS -> RailOne Adapter -> RailOne Network -> Financial Institutions
+### Lightweight Merchant OS
 
-This design allows payment routing capabilities to be introduced without redesigning merchant workflows or data structures.
-Success Criteria
-• Reliable operation in low-connectivity environments
-• Fast onboarding for SMEs
-• Real-time or near-real-time synchronization
-• Strong auditability
-• Simple user experience
-• Seamless future RailOne integration
-Conclusion
-AviaPOS is designed to solve immediate merchant challenges while establishing a long-term infrastructure foundation. By combining simplicity, reliability, privacy, and event-driven architecture, AviaPOS can serve as both a merchant operating platform and a future gateway into the RailOne ecosystem.
+AviaPOS intentionally avoids ERP bloat.
+
+Included:
+
+- Sales
+- Inventory
+- Debts
+- Expenses
+- Suppliers
+- Branch Operations
+- Dashboards
+
+Excluded:
+
+- Payroll
+- HR
+- Recruitment
+- Marketing Automation
+- CRM Complexity
+
+---
+
+### Offline-First
+
+Merchants can continue operating without internet access.
+
+The Sync Engine allows:
+
+- Desktop Sync
+- Mobile Sync
+- Branch Sync
+- Future RailOne Sync
+
+---
+
+### Privacy-First Identity
+
+AviaPOS does not perform identity verification directly.
+
+Identity verification is delegated to trusted third-party issuers.
+
+AviaPOS only stores verification references and permissions.
+
+---
+
+### Non-Custodial By Design
+
+AviaPOS does not hold customer funds.
+
+Financial assets remain within regulated institutions.
+
+Future payment orchestration is handled through RailOne.
+
+---
+
+## Architecture
+
+
+
+
+
+---
+
+## Modules
+
+### Sales
+
+Records sales transactions and receipts.
+
+### Inventory
+
+Tracks stock movement and availability.
+
+### Debts
+
+Tracks customer credit and settlements.
+
+### Transfers
+
+Tracks branch-to-branch operational transfers.
+
+### Suppliers
+
+Tracks supplier obligations.
+
+### Expenses
+
+Tracks operational spending.
+
+---
+
+## Future RailOne Integration
+
+RailOne will provide:
+
+- Payment Routing
+- Settlement Verification
+- Reconciliation
+- Liquidity Visibility
+- Multi-Rail Connectivity
+
+without taking custody of merchant funds.
+
+---
+
+## Technology Stack
+
+Backend
+
+- Python 3.12+
+- FastAPI
+- SQLite
+- Event Sourcing
+
+Future
+
+- PostgreSQL
+- Redis
+- RailOne Connectors
+
+---
+
+## Status
+
+Current Phase:
+
+MVP Foundation
+
+Implemented:
+
+- Event Ledger
+- Hash Chaining
+- Projections
+- Sync Engine
+- Core Business Modules
+
+In Progress:
+
+- API Layer
+- Authentication
+- Dashboard APIs
+
+Future:
+
+- Multi-Branch Operations
+- Supplier Management
+- Expense Management
+- RailOne Integration

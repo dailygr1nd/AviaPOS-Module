@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Dict
 
 
 @dataclass
@@ -17,4 +16,6 @@ class Event:
 
     payload_hash: str
 
-    payload: Dict
+    event_hash: str
+
+    payload: dict

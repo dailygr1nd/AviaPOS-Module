@@ -1,51 +1,34 @@
-import json
-
-
 class SalesProjection:
 
     def __init__(self):
 
-        self.sales = []
-
         self.total_sales = 0
 
-    def replay(
+        self.sale_count = 0
 
-        self,
+    def apply(self, event):
 
-        events
+        if event["event_type"] != "SALE_CREATED":
 
-    ):
+            return
 
-        self.sales.clear()
+        amount = event["payload"].get(
 
-        self.total_sales = 0
+            "amount",
+
+            0
+
+        )
+
+        self.total_sales += amount
+
+        self.sale_count += 1
+
+    def replay(self, events):
 
         for event in events:
 
-            if (
-
-                event["event_type"]
-
-                !=
-
-                "SALE_CREATED"
-
-            ):
-
-                continue
-
-            payload = json.loads(
-                event["payload"]
-            )
-
-            self.sales.append(
-                payload
-            )
-
-            self.total_sales += (
-                payload["amount"]
-            )
+            self.apply(event)
 
     def total(self):
 
@@ -53,6 +36,4 @@ class SalesProjection:
 
     def count(self):
 
-        return len(
-            self.sales
-        )
+        return self.sale_count

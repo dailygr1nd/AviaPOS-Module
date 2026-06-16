@@ -12,12 +12,21 @@ def canonical_json(payload: dict) -> str:
 
 
 def calculate_payload_hash(
-    payload: dict
-) -> str:
+
+    payload
+
+):
+
+    data = json.dumps(
+
+        payload,
+
+        sort_keys=True
+
+    )
 
     return hashlib.sha256(
 
-        canonical_json(payload)
-        .encode()
+        data.encode()
 
     ).hexdigest()
