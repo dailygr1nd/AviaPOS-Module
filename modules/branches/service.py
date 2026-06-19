@@ -1,5 +1,3 @@
-import uuid
-
 from core.events.types import (
     EventType
 )
@@ -8,41 +6,54 @@ from core.ledger.event_factory import (
     create_event
 )
 
+from core.ledger.store import (
+    append_event
+)
+
+from core.ledger.hash_chain import (
+    get_last_event_hash
+)
+
 
 def create_branch(
 
-    merchant_id,
+    merchant_id: str,
 
-    branch_name,
+    branch_id: str,
 
-    location,
+    name: str,
 
-    previous_hash
+    location: str
 
 ):
 
     payload = {
 
-        "branch_id": str(
+        "branch_id":
+            branch_id,
 
-            uuid.uuid4()
+        "name":
+            name,
 
-        ),
-
-        "branch_name": branch_name,
-
-        "location": location
+        "location":
+            location
 
     }
 
-    return create_event(
+    event = create_event(
 
-        event_type=EventType.BRANCH_CREATED,
+        EventType.BRANCH_CREATED,
 
-        merchant_id=merchant_id,
+        merchant_id,
 
-        payload=payload,
+        payload,
 
-        previous_hash=previous_hash
+        get_last_event_hash()
 
     )
+
+    append_event(
+        event
+    )
+
+    return event

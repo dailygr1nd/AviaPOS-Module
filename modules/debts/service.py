@@ -1,5 +1,3 @@
-import uuid
-
 from core.events.types import (
     EventType
 )
@@ -8,52 +6,20 @@ from core.ledger.event_factory import (
     create_event
 )
 
+from core.ledger.store import (
+    append_event
+)
+
+from core.ledger.hash_chain import (
+    get_last_event_hash
+)
+
+from modules.debts.aggregate import (
+    DebtAggregate
+)
+
 
 def create_debt(
-
-    merchant_id: str,
-
-    customer_id: str,
-
-    amount: float,
-
-    currency: str,
-
-    due_date: str,
-
-    previous_hash: str
-
-):
-
-    payload = {
-
-        "debt_id": str(
-            uuid.uuid4()
-        ),
-
-        "customer_id": customer_id,
-
-        "amount": amount,
-
-        "currency": currency,
-
-        "due_date": due_date
-
-    }
-
-    return create_event(
-
-        EventType.DEBT_CREATED,
-
-        merchant_id,
-
-        payload,
-
-        previous_hash
-    )
-
-
-def settle_debt(
 
     merchant_id: str,
 
@@ -61,33 +27,88 @@ def settle_debt(
 
     customer_id: str,
 
-    amount: float,
+    sale_id: str,
 
-    currency: str,
-
-    previous_hash: str
+    amount: float
 
 ):
 
+    DebtAggregate.validate_amount(
+        amount
+    )
+
     payload = {
 
-        "debt_id": debt_id,
+        "debt_id":
+            debt_id,
 
-        "customer_id": customer_id,
+        "customer_id":
+            customer_id,
 
-        "amount": amount,
+        "sale_id":
+            sale_id,
 
-        "currency": currency
+        "amount":
+            amount
 
     }
 
-    return create_event(
+    event = create_event(
 
-        EventType.DEBT_SETTLED,
+        EventType
+        .DEBT_CREATED,
 
         merchant_id,
 
         payload,
 
-        previous_hash
+        get_last_event_hash()
+
     )
+
+    append_event(event)
+
+    return event
+
+
+def record_payment(
+
+    merchant_id: str,
+
+    debt_id: str,
+
+    amount: float,
+
+    method: str
+
+):
+
+    payload = {
+
+        "debt_id":
+            debt_id,
+
+        "amount":
+            amount,
+
+        "method":
+            method
+
+    }
+
+    event = create_event(
+
+        EventType
+        .DEBT_PAYMENT_RECEIVED,
+
+        merchant_id,
+
+        payload,
+
+        get_last_event_hash()
+
+    )
+
+    append_event(event)
+
+    return event

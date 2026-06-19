@@ -6,6 +6,18 @@ from core.ledger.event_factory import (
     create_event
 )
 
+from core.ledger.store import (
+    append_event
+)
+
+from core.ledger.hash_chain import (
+    get_last_event_hash
+)
+
+from modules.customers.aggregate import (
+    CustomerAggregate
+)
+
 
 def create_customer(
 
@@ -15,29 +27,40 @@ def create_customer(
 
     name: str,
 
-    phone: str,
-
-    previous_hash: str
+    phone: str = ""
 
 ):
 
+    CustomerAggregate.validate_create(
+        name
+    )
+
     payload = {
 
-        "customer_id": customer_id,
+        "customer_id":
+            customer_id,
 
-        "name": name,
+        "name":
+            name,
 
-        "phone": phone
+        "phone":
+            phone
 
     }
 
-    return create_event(
+    event = create_event(
 
-        EventType.CUSTOMER_CREATED,
+        EventType
+        .CUSTOMER_CREATED,
 
         merchant_id,
 
         payload,
 
-        previous_hash
+        get_last_event_hash()
+
     )
+
+    append_event(event)
+
+    return event
