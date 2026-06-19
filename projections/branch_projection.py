@@ -4,7 +4,13 @@ class BranchProjection:
 
         self.transfers = []
 
-    def apply(self, event):
+    def apply(
+
+        self,
+
+        event
+
+    ):
 
         if (
 
@@ -22,8 +28,6 @@ class BranchProjection:
 
             )
 
-    def replay(self, events):
+    def all_transfers(self):
 
-        for event in events:
-
-            self.apply(event)
+        return self.transfers

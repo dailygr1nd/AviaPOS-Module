@@ -4,80 +4,93 @@ class InventoryProjection:
 
         self.stock = {}
 
-    def apply(self, event):
+    def apply(
 
-        event_type = event["event_type"]
+        self,
 
-        payload = event["payload"]
+        event
 
-        product_id = payload.get(
+    ):
 
-            "product_id"
+        event_type = (
+            event["event_type"]
         )
 
-        if not product_id:
+        payload = (
+            event["payload"]
+        )
 
-            return
+        if (
 
-        if event_type == "STOCK_RECEIVED":
+            event_type ==
+            "INVENTORY_RECEIVED"
 
-            self.stock[product_id] = (
+        ):
+
+            product_id = (
+
+                payload["product_id"]
+
+            )
+
+            quantity = (
+
+                payload["quantity"]
+
+            )
+
+            self.stock[
+                product_id
+            ] = (
 
                 self.stock.get(
-
                     product_id,
-
                     0
-
                 )
 
                 +
 
-                payload.get(
+                quantity
+            )
 
-                    "quantity",
+        elif (
 
-                    0
+            event_type ==
+            "SALE_CREATED"
 
-                )
+        ):
+
+            product_id = (
+
+                payload["product_id"]
 
             )
 
-        elif event_type == "STOCK_DEDUCTED":
+            quantity = (
 
-            self.stock[product_id] = (
+                payload["quantity"]
+
+            )
+
+            self.stock[
+                product_id
+            ] = (
 
                 self.stock.get(
-
                     product_id,
-
                     0
-
                 )
 
                 -
 
-                payload.get(
-
-                    "quantity",
-
-                    0
-
-                )
-
+                quantity
             )
 
-    def replay(self, events):
-
-        for event in events:
-
-            self.apply(event)
-
-    def get_stock(
+    def quantity(
 
         self,
 
-        product_id
+        product_id: str
 
     ):
 

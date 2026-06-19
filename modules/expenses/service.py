@@ -1,3 +1,5 @@
+import uuid
+
 from core.events.types import (
     EventType
 )
@@ -6,35 +8,39 @@ from core.ledger.event_factory import (
     create_event
 )
 
+
 def record_expense(
 
-    merchant_id,
+    merchant_id: str,
 
-    category,
+    category: str,
 
-    amount,
+    amount: float,
 
-    currency,
+    notes: str,
 
-    description,
-
-    previous_hash
+    previous_hash: str
 
 ):
 
     payload = {
 
+        "expense_id":
+
+            str(uuid.uuid4()),
+
         "category":
+
             category,
 
         "amount":
+
             amount,
 
-        "currency":
-            currency,
+        "notes":
 
-        "description":
-            description
+            notes
+
     }
 
     return create_event(
@@ -46,4 +52,5 @@ def record_expense(
         payload,
 
         previous_hash
+
     )

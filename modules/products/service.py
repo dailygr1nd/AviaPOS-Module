@@ -8,38 +8,39 @@ from core.ledger.event_factory import (
     create_event
 )
 
+
 def create_product(
 
-    merchant_id,
+    merchant_id: str,
 
-    sku,
+    sku: str,
 
-    name,
+    name: str,
 
-    category,
+    price: float,
 
-    unit_price,
-
-    previous_hash
+    previous_hash: str
 
 ):
 
     payload = {
 
         "product_id":
-            str(uuid.uuid4()),
+
+            sku,
 
         "sku":
+
             sku,
 
         "name":
+
             name,
 
-        "category":
-            category,
+        "price":
 
-        "unit_price":
-            unit_price
+            price
+
     }
 
     return create_event(
@@ -51,4 +52,5 @@ def create_product(
         payload,
 
         previous_hash
+
     )

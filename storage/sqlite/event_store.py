@@ -2,6 +2,7 @@ import json
 import sqlite3
 
 from typing import List
+from typing import Optional
 
 
 class EventStore:
@@ -10,11 +11,23 @@ class EventStore:
 
         self,
 
-        db_path: str
+        db_path: str = "storage/sqlite/aviapos.db"
 
     ):
 
         self.db_path = db_path
+
+    def _connect(self):
+
+        conn = sqlite3.connect(
+
+            self.db_path
+
+        )
+
+        conn.row_factory = sqlite3.Row
+
+        return conn
 
     def append(
 
@@ -24,9 +37,7 @@ class EventStore:
 
     ):
 
-        conn = sqlite3.connect(
-            self.db_path
-        )
+        conn = self._connect()
 
         conn.execute(
 
@@ -34,21 +45,13 @@ class EventStore:
             INSERT INTO events (
 
                 event_id,
-
                 merchant_id,
-
                 event_type,
-
                 timestamp,
-
                 previous_hash,
-
                 payload_hash,
-
                 event_hash,
-
                 payload,
-
                 sync_status
 
             )
@@ -94,20 +97,17 @@ class EventStore:
 
     ) -> List[dict]:
 
-        conn = sqlite3.connect(
-            self.db_path
-        )
-
-        conn.row_factory = (
-            sqlite3.Row
-        )
+        conn = self._connect()
 
         rows = conn.execute(
 
             """
             SELECT *
+
             FROM events
+
             WHERE merchant_id = ?
+
             ORDER BY timestamp ASC
             """,
 
@@ -130,11 +130,27 @@ class EventStore:
             )
 
             events.append(
+
                 event
+
             )
 
         return events
-    
+
+    def load_events(
+
+        self,
+
+        merchant_id: str
+
+    ) -> List[dict]:
+
+        return self.replay_events(
+
+            merchant_id
+
+        )
+
     def latest_hash(
 
         self,
@@ -143,9 +159,7 @@ class EventStore:
 
     ) -> str:
 
-        conn = sqlite3.connect(
-            self.db_path
-        )
+        conn = self._connect()
 
         row = conn.execute(
 
@@ -167,12 +181,12 @@ class EventStore:
 
         conn.close()
 
-        if not row:
+        if row is None:
 
             return "GENESIS"
 
-        return row[0]
-    
+        return row["event_hash"]
+
     def count_events(
 
         self,
@@ -181,9 +195,7 @@ class EventStore:
 
     ) -> int:
 
-        conn = sqlite3.connect(
-            self.db_path
-        )
+        conn = self._connect()
 
         row = conn.execute(
 
@@ -202,7 +214,7 @@ class EventStore:
         conn.close()
 
         return row[0]
-    
+
     def pending_events(
 
         self,
@@ -211,13 +223,7 @@ class EventStore:
 
     ):
 
-        conn = sqlite3.connect(
-            self.db_path
-        )
-
-        conn.row_factory = (
-            sqlite3.Row
-        )
+        conn = self._connect()
 
         rows = conn.execute(
 
@@ -239,14 +245,26 @@ class EventStore:
 
         conn.close()
 
-        return [
+        events = []
 
-            dict(row)
+        for row in rows:
 
-            for row in rows
+            event = dict(row)
 
-        ]
-    
+            event["payload"] = json.loads(
+
+                event["payload"]
+
+            )
+
+            events.append(
+
+                event
+
+            )
+
+        return events
+
     def mark_synced(
 
         self,
@@ -255,18 +273,16 @@ class EventStore:
 
     ):
 
-        conn = sqlite3.connect(
-            self.db_path
-        )
+        conn = self._connect()
 
         conn.execute(
 
             """
             UPDATE events
 
-            SET sync_status='SYNCED'
+            SET sync_status = 'SYNCED'
 
-            WHERE event_id=?
+            WHERE event_id = ?
             """,
 
             (event_id,)
@@ -277,21 +293,24 @@ class EventStore:
 
         conn.close()
 
+
+    def load_events(
+        self,
+        merchant_id: str
+):
+        return self.replay_events(
+        merchant_id
+    )
+
     def get_event(
 
         self,
 
         event_id: str
 
-    ):
+    ) -> Optional[dict]:
 
-        conn = sqlite3.connect(
-            self.db_path
-        )
-
-        conn.row_factory = (
-            sqlite3.Row
-        )
+        conn = self._connect()
 
         row = conn.execute(
 
@@ -300,7 +319,7 @@ class EventStore:
 
             FROM events
 
-            WHERE event_id=?
+            WHERE event_id = ?
             """,
 
             (event_id,)
@@ -309,7 +328,7 @@ class EventStore:
 
         conn.close()
 
-        if not row:
+        if row is None:
 
             return None
 

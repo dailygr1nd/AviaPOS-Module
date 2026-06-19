@@ -1,13 +1,30 @@
-import json
-
-
 class ProductProjection:
 
     def __init__(self):
 
         self.products = {}
 
-    def replay(
+    def apply(
+
+        self,
+
+        event
+
+    ):
+
+        if event["event_type"] != "PRODUCT_CREATED":
+
+            return
+
+        payload = event["payload"]
+
+        self.products[
+
+            payload["product_id"]
+
+        ] = payload
+
+    def rebuild(
 
         self,
 
@@ -15,60 +32,30 @@ class ProductProjection:
 
     ):
 
-        self.products.clear()
+        self.products = {}
 
         for event in events:
 
-            payload = json.loads(
-                event["payload"]
-            )
+            self.apply(event)
 
-            if (
+    def list_products(self):
 
-                event["event_type"]
+        return list(
 
-                ==
+            self.products.values()
 
-                "PRODUCT_CREATED"
-
-            ):
-
-                self.products[
-                    payload["sku"]
-                ] = payload
-
-            elif (
-
-                event["event_type"]
-
-                ==
-
-                "PRODUCT_UPDATED"
-
-            ):
-
-                sku = payload["sku"]
-
-                if sku in self.products:
-
-                    self.products[sku].update(
-                        payload
-                    )
+        )
 
     def get_product(
 
         self,
 
-        sku: str
+        product_id
 
     ):
 
         return self.products.get(
-            sku
-        )
 
-    def all_products(self):
+            product_id
 
-        return list(
-            self.products.values()
         )

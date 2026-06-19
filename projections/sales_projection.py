@@ -4,36 +4,50 @@ class SalesProjection:
 
         self.total_sales = 0
 
-        self.sale_count = 0
+        self.total_transactions = 0
 
-    def apply(self, event):
+    def apply(
 
-        if event["event_type"] != "SALE_CREATED":
+        self,
+
+        event
+
+    ):
+
+        if (
+
+            event["event_type"]
+
+            !=
+
+            "SALE_CREATED"
+
+        ):
 
             return
 
-        amount = event["payload"].get(
+        payload = (
+            event["payload"]
+        )
 
-            "amount",
+        self.total_sales += (
 
-            0
+            payload["amount"]
 
         )
 
-        self.total_sales += amount
+        self.total_transactions += 1
 
-        self.sale_count += 1
+    def summary(self):
 
-    def replay(self, events):
+        return {
 
-        for event in events:
+            "sales":
 
-            self.apply(event)
+                self.total_sales,
 
-    def total(self):
+            "transactions":
 
-        return self.total_sales
+                self.total_transactions
 
-    def count(self):
-
-        return self.sale_count
+        }

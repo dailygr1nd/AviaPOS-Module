@@ -9,69 +9,40 @@ from core.ledger.event_factory import (
 
 def receive_stock(
 
-    merchant_id,
+    merchant_id: str,
 
-    product_id,
+    product_id: str,
 
-    quantity,
+    sku: str,
 
-    unit_cost,
+    quantity: int,
 
-    previous_hash
+    cost_price: float,
+
+    previous_hash: str
 
 ):
 
     payload = {
 
-        "product_id":
-            product_id,
+        "product_id": product_id,
 
-        "quantity":
-            quantity,
+        "sku": sku,
 
-        "unit_cost":
-            unit_cost
+        "quantity": quantity,
+
+        "cost_price": cost_price
+
     }
 
     return create_event(
 
-        EventType.STOCK_RECEIVED,
+        EventType.INVENTORY_RECEIVED,
 
         merchant_id,
 
         payload,
 
         previous_hash
-    )
 
-def deduct_stock(
-
-    merchant_id,
-
-    product_id,
-
-    quantity,
-
-    previous_hash
-
-):
-
-    payload = {
-
-        "product_id":
-            product_id,
-
-        "quantity":
-            quantity
-    }
-
-    return create_event(
-
-        EventType.STOCK_DEDUCTED,
-
-        merchant_id,
-
-        payload,
-
-        previous_hash
     )

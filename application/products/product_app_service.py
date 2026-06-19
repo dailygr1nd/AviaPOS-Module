@@ -1,14 +1,12 @@
 from app_context import (
-
     store,
-
     event_bus
-
 )
 
 from modules.products.service import (
     create_product
 )
+
 
 class ProductApplicationService:
 
@@ -16,25 +14,25 @@ class ProductApplicationService:
 
         self,
 
-        merchant_id,
+        merchant_id: str,
 
-        sku,
+        sku: str,
 
-        name,
+        name: str,
 
-        category,
-
-        unit_price
+        price: float
 
     ):
-                previous_hash = (
+
+        previous_hash = (
 
             store.latest_hash(
                 merchant_id
             )
 
         )
-                event = create_product(
+
+        event = create_product(
 
             merchant_id=
                 merchant_id,
@@ -45,22 +43,20 @@ class ProductApplicationService:
             name=
                 name,
 
-            category=
-                category,
-
-            unit_price=
-                unit_price,
+            price=
+                price,
 
             previous_hash=
                 previous_hash
+
         )
-                
-                store.append(
+
+        store.append(
             event
         )
 
-                event_bus.publish(
+        event_bus.publish(
             event
         )
 
-                return event
+        return event

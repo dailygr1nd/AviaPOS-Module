@@ -2,71 +2,60 @@ class DebtProjection:
 
     def __init__(self):
 
-        self.balances = {}
+        self.total_debt = 0
 
-    def apply(self, event):
+    def apply(
 
-        payload = event["payload"]
+        self,
 
-        customer_id = payload.get(
+        event
 
-            "customer_id"
+    ):
+
+        event_type = (
+
+            event["event_type"]
+
         )
 
-        if not customer_id:
+        payload = (
 
-            return
+            event["payload"]
 
-        if event["event_type"] == "DEBT_CREATED":
+        )
 
-            self.balances[customer_id] = (
+        if (
 
-                self.balances.get(
+            event_type
 
-                    customer_id,
+            ==
 
-                    0
+            "DEBT_CREATED"
 
-                )
+        ):
 
-                +
+            self.total_debt += (
 
-                payload.get(
-
-                    "amount",
-
-                    0
-
-                )
+                payload["amount"]
 
             )
 
-        elif event["event_type"] == "DEBT_SETTLED":
+        elif (
 
-            self.balances[customer_id] = (
+            event_type
 
-                self.balances.get(
+            ==
 
-                    customer_id,
+            "DEBT_SETTLED"
 
-                    0
+        ):
 
-                )
+            self.total_debt -= (
 
-                -
-
-                payload.get(
-
-                    "amount",
-
-                    0
-
-                )
+                payload["amount"]
 
             )
 
-    def replay(self, events):
+    def outstanding(self):
 
-        for event in events:
-
-            self.apply(event)
+        return self.total_debt

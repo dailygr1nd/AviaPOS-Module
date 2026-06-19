@@ -1,8 +1,20 @@
 from fastapi import FastAPI
 
-from api.routes.sales import router as sales_router
-from api.routes.products import router as product_router
-from api.routes.dashboard import router as dashboard_router
+from api.routes.products import (
+    router as products_router
+)
+
+from api.routes.inventory import (
+    router as inventory_router
+)
+
+from api.routes.sales import (
+    router as sales_router
+)
+
+from api.routes.dashboard import (
+    router as dashboard_router
+)
 
 app = FastAPI(
 
@@ -14,21 +26,31 @@ app = FastAPI(
 
 app.include_router(
 
-    sales_router,
+    products_router,
 
-    prefix="/sales",
+    prefix="/products",
 
-    tags=["Sales"]
+    tags=["Products"]
 
 )
 
 app.include_router(
 
-    product_router,
+    inventory_router,
 
-    prefix="/products",
+    prefix="/inventory",
 
-    tags=["Products"]
+    tags=["Inventory"]
+
+)
+
+app.include_router(
+
+    sales_router,
+
+    prefix="/sales",
+
+    tags=["Sales"]
 
 )
 
@@ -45,12 +67,12 @@ app.include_router(
 
 @app.get("/")
 
-def health():
+def root():
 
     return {
 
-        "service": "AviaPOS",
+        "name": "AviaPOS",
 
-        "status": "running"
+        "status": "online"
 
     }

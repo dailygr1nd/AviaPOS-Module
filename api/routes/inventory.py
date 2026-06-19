@@ -1,49 +1,50 @@
 from fastapi import APIRouter
 
-from app_context import store
-
-from modules.inventory.service import (
-    receive_stock
+from api.schemas.inventory import (
+    InventoryReceiptRequest
 )
 
-router = APIRouter(
-
-    prefix="/inventory",
-
-    tags=["Inventory"]
-
+from application.inventory.inventory_app_service import (
+    InventoryApplicationService
 )
+
+router = APIRouter()
+
+service = InventoryApplicationService()
+
 
 @router.post("/receive")
-def stock_receive(data: dict):
+def receive_inventory(
 
-    previous_hash = (
+    request:
+    InventoryReceiptRequest
 
-        store.latest_hash(
+):
 
-            data["merchant_id"]
-
-        )
-
-    )
-
-    event = receive_stock(
+    event = service.create_stock_receipt(
 
         merchant_id=
-            data["merchant_id"],
+            request.merchant_id,
 
-        sku=data["sku"],
+        product_id=
+            request.product_id,
+
+        sku=
+            request.sku,
 
         quantity=
-            data["quantity"],
+            request.quantity,
 
-        previous_hash=
-            previous_hash
+        cost_price=
+            request.cost_price
+
     )
-
-    store.append(event)
 
     return {
 
-        "success": True
+        "event_id":
+            event.event_id,
+
+        "event_type":
+            event.event_type
     }

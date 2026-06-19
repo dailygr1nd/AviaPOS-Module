@@ -8,28 +8,33 @@ from core.ledger.event_factory import (
     create_event
 )
 
+
 def create_supplier(
 
-    merchant_id,
+    merchant_id: str,
 
-    supplier_name,
+    name: str,
 
-    phone,
+    phone: str,
 
-    previous_hash
+    previous_hash: str
 
 ):
 
     payload = {
 
         "supplier_id":
+
             str(uuid.uuid4()),
 
-        "supplier_name":
-            supplier_name,
+        "name":
+
+            name,
 
         "phone":
+
             phone
+
     }
 
     return create_event(
@@ -41,4 +46,5 @@ def create_supplier(
         payload,
 
         previous_hash
+
     )

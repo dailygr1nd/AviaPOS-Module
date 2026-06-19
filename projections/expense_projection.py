@@ -4,26 +4,32 @@ class ExpenseProjection:
 
         self.total_expenses = 0
 
-    def apply(self, event):
+    def apply(
 
-        if event["event_type"] != "EXPENSE_CREATED":
+        self,
+
+        event
+
+    ):
+
+        if (
+
+            event["event_type"]
+
+            !=
+
+            "EXPENSE_RECORDED"
+
+        ):
 
             return
 
         self.total_expenses += (
 
-            event["payload"].get(
-
-                "amount",
-
-                0
-
-            )
+            event["payload"]["amount"]
 
         )
 
-    def replay(self, events):
+    def total(self):
 
-        for event in events:
-
-            self.apply(event)
+        return self.total_expenses

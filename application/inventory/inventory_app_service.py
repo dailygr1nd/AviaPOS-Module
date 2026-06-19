@@ -1,97 +1,61 @@
 from app_context import (
-
     store,
-
     event_bus
-
 )
 
 from modules.inventory.service import (
-
-    receive_stock,
-
-    deduct_stock
+    receive_stock
 )
 
+
 class InventoryApplicationService:
-        def receive_stock(
+
+    def create_stock_receipt(
 
         self,
 
-        merchant_id,
+        merchant_id: str,
 
-        product_id,
+        product_id: str,
 
-        quantity,
+        sku: str,
 
-        unit_cost
+        quantity: int,
+
+        cost_price: float
 
     ):
-                previous_hash = (
+
+        previous_hash = (
 
             store.latest_hash(
-
                 merchant_id
-
             )
 
         )
-                event = receive_stock(
 
-            merchant_id=
-                merchant_id,
+        event = receive_stock(
 
-            product_id=
-                product_id,
+            merchant_id=merchant_id,
 
-            quantity=
-                quantity,
+            product_id=product_id,
 
-            unit_cost=
-                unit_cost,
+            sku=sku,
 
-            previous_hash=
-                previous_hash
+            quantity=quantity,
+
+            cost_price=cost_price,
+
+            previous_hash=previous_hash
+
         )
-                store.append(
+
+        store.append(
             event
         )
 
-
-        def deduct_stock(
-
-        self,
-
-        merchant_id,
-
-        product_id,
-
-        quantity
-
-    ):
-                previous_hash = (
-
-            store.latest_hash(
-
-                merchant_id
-
-            )
-
-        )
-                event = deduct_stock(
-
-            merchant_id=
-                merchant_id,
-
-            product_id=
-                product_id,
-
-            quantity=
-                quantity,
-
-            previous_hash=
-                previous_hash
-        )
-                store.append(
+        event_bus.publish(
             event
         )
+
+        return event

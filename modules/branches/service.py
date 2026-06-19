@@ -8,6 +8,7 @@ from core.ledger.event_factory import (
     create_event
 )
 
+
 def create_branch(
 
     merchant_id,
@@ -22,26 +23,26 @@ def create_branch(
 
     payload = {
 
-        "branch_id":
+        "branch_id": str(
 
-            str(uuid.uuid4()),
+            uuid.uuid4()
 
-        "branch_name":
+        ),
 
-            branch_name,
+        "branch_name": branch_name,
 
-        "location":
+        "location": location
 
-            location
     }
 
     return create_event(
 
-        EventType.BRANCH_CREATED,
+        event_type=EventType.BRANCH_CREATED,
 
-        merchant_id,
+        merchant_id=merchant_id,
 
-        payload,
+        payload=payload,
 
-        previous_hash
+        previous_hash=previous_hash
+
     )

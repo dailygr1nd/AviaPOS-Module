@@ -1,10 +1,7 @@
-from pydantic import (
-    BaseModel,
-    Field
-)
+from pydantic import BaseModel
 
 
-class ReceiveStockRequest(
+class InventoryReceiptRequest(
 
     BaseModel
 
@@ -12,8 +9,10 @@ class ReceiveStockRequest(
 
     merchant_id: str
 
+    product_id: str
+
     sku: str
 
-    quantity: int = Field(
-        gt=0
-    )
+    quantity: int
+
+    cost_price: float

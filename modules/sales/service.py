@@ -1,3 +1,5 @@
+import uuid
+
 from core.events.types import (
     EventType
 )
@@ -11,13 +13,13 @@ def create_sale(
 
     merchant_id: str,
 
+    product_id: str,
+
+    quantity: int,
+
     amount: float,
 
     currency: str,
-
-    items: list,
-
-    payment_method: str,
 
     previous_hash: str
 
@@ -25,17 +27,22 @@ def create_sale(
 
     payload = {
 
+        "sale_id": str(
+            uuid.uuid4()
+        ),
+
+        "product_id":
+            product_id,
+
+        "quantity":
+            quantity,
+
         "amount":
             amount,
 
         "currency":
-            currency,
+            currency
 
-        "items":
-            items,
-
-        "payment_method":
-            payment_method
     }
 
     return create_event(
@@ -47,4 +54,5 @@ def create_sale(
         payload,
 
         previous_hash
+
     )
