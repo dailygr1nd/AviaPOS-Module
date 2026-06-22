@@ -19,6 +19,17 @@ from modules.control_center.api_debug import router as debug_router
 
 
 from modules.control_center.api import router as control_router
+from infrastructure.redis.bootstrap import (
+    bootstrap_redis
+)
+
+from infrastructure.redis.start_worker import (
+    launch_workers
+)
+
+bootstrap_redis()
+
+launch_workers()
 
 
 app.include_router(

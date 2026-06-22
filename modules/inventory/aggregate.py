@@ -54,3 +54,33 @@ class InventoryAggregate:
                 )
 
             )
+
+
+def snapshot_state(self):
+
+    return {
+
+        "product_id":
+            self.product_id,
+
+        "quantity":
+            self.quantity
+
+    }
+
+
+def restore_state(
+
+    self,
+
+    state
+
+):
+
+    self.product_id = state[
+        "product_id"
+    ]
+
+    self.quantity = state[
+        "quantity"
+    ]

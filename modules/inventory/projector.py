@@ -1,80 +1,126 @@
-from core.events.types import EventType
+from sqlalchemy.orm import Session
 
-from modules.inventory.projection import (
-    inventory
+from modules.inventory.models import (
+    InventoryProjection
+)
+
+from infrastructure.projections.base_projector import (
+    BaseProjector
 )
 
 
-class InventoryProjector:
+class InventoryProjector(
+    BaseProjector
+):
 
-    @staticmethod
-    def reset():
+    projection_name = (
+        "inventory_projection"
+    )
 
-        inventory.clear()
+    def __init__(
+        self,
+        db: Session
+    ):
+        self.db = db
 
-    @staticmethod
-    def apply(event):
+    def handle(
+        self,
+        event
+    ):
 
-        payload = event["payload"]
+        payload = event.payload
 
-        event_type = (
-            event["event_type"]
+        if event.event_type == (
+            "INVENTORY_RECEIVED"
+        ):
+
+            self.receive(
+                payload
+            )
+
+        elif event.event_type == (
+            "INVENTORY_DEDUCTED"
+        ):
+
+            self.deduct(
+                payload
+            )
+
+    def receive(
+        self,
+        payload
+    ):
+
+        row = (
+
+            self.db.query(
+                InventoryProjection
+            )
+
+            .filter(
+                InventoryProjection.branch_id
+                == payload["branch_id"],
+
+                InventoryProjection.product_id
+                == payload["product_id"]
+
+            )
+
+            .first()
+
         )
 
-        if "branch_id" not in payload:
+        if not row:
 
+            row = InventoryProjection(
+
+                branch_id=
+                    payload["branch_id"],
+
+                product_id=
+                    payload["product_id"],
+
+                quantity=0
+
+            )
+
+            self.db.add(row)
+
+        row.quantity += (
+            payload["quantity"]
+        )
+
+        self.db.commit()
+
+    def deduct(
+        self,
+        payload
+    ):
+
+        row = (
+
+            self.db.query(
+                InventoryProjection
+            )
+
+            .filter(
+                InventoryProjection.branch_id
+                == payload["branch_id"],
+
+                InventoryProjection.product_id
+                == payload["product_id"]
+
+            )
+
+            .first()
+
+        )
+
+        if not row:
             return
 
-        key = (
-
-            payload["branch_id"],
-
-            payload["product_id"]
-
+        row.quantity -= (
+            payload["quantity"]
         )
 
-        if key not in inventory:
-
-            inventory[key] = 0
-
-        if (
-
-            event_type ==
-
-            EventType
-            .INVENTORY_RECEIVED
-            .value
-
-        ):
-
-            inventory[key] += (
-                payload["quantity"]
-            )
-
-        elif (
-
-            event_type ==
-
-            EventType
-            .INVENTORY_DEDUCTED
-            .value
-
-        ):
-
-            inventory[key] -= (
-                payload["quantity"]
-            )
-
-        elif (
-
-            event_type ==
-
-            EventType
-            .INVENTORY_ADJUSTED
-            .value
-
-        ):
-
-            inventory[key] += (
-                payload["adjustment"]
-            )
+        self.db.commit()

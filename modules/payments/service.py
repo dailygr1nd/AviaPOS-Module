@@ -1,13 +1,5 @@
 import uuid
 
-from core.events.types import (
-    EventType
-)
-
-from core.ledger.event_factory import (
-    create_event
-)
-
 from infrastructure.database.session import (
     SessionLocal
 )
@@ -16,55 +8,58 @@ from infrastructure.event_store.repository import (
     EventRepository
 )
 
+from core.ledger.event_factory import (
+    create_event
+)
 
-def create_expense(
+from core.events.types import (
+    EventType
+)
+
+
+def create_payment(
 
     merchant_id: str,
 
-    branch_id: str,
-
-    category: str,
-
-    description: str,
-
     amount: float,
 
-    reference: str | None
+    payment_method: str,
+
+    reference_type: str,
+
+    reference_id: str
 
 ):
 
-    expense_id = str(
+    payment_id = str(
         uuid.uuid4()
     )
 
     payload = {
 
-        "expense_id":
-            expense_id,
+        "payment_id":
+            payment_id,
 
         "merchant_id":
             merchant_id,
 
-        "branch_id":
-            branch_id,
-
-        "category":
-            category,
-
-        "description":
-            description,
-
         "amount":
             amount,
 
-        "reference":
-            reference
+        "payment_method":
+            payment_method,
+
+        "reference_type":
+            reference_type,
+
+        "reference_id":
+            reference_id
 
     }
 
     event = create_event(
 
-        EventType.EXPENSE_CREATED,
+        EventType.PAYMENT_CREATED,
 
         merchant_id,
 
@@ -83,9 +78,9 @@ def create_expense(
     return event
 
 
-def approve_expense(
+def complete_payment(
 
-    expense_id: str,
+    payment_id: str,
 
     merchant_id: str
 
@@ -93,14 +88,14 @@ def approve_expense(
 
     payload = {
 
-        "expense_id":
-            expense_id
+        "payment_id":
+            payment_id
 
     }
 
     event = create_event(
 
-        EventType.EXPENSE_APPROVED,
+        EventType.PAYMENT_COMPLETED,
 
         merchant_id,
 
@@ -119,29 +114,24 @@ def approve_expense(
     return event
 
 
-def pay_expense(
+def fail_payment(
 
-    expense_id: str,
+    payment_id: str,
 
-    merchant_id: str,
-
-    payment_method: str
+    merchant_id: str
 
 ):
 
     payload = {
 
-        "expense_id":
-            expense_id,
-
-        "payment_method":
-            payment_method
+        "payment_id":
+            payment_id
 
     }
 
     event = create_event(
 
-        EventType.EXPENSE_PAID,
+        EventType.PAYMENT_FAILED,
 
         merchant_id,
 

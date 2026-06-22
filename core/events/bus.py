@@ -1,19 +1,45 @@
-# core/events/bus.py
-
-subscribers = []
+from collections import defaultdict
 
 
-def subscribe(handler):
+class EventBus:
 
-    subscribers.append(handler)
+    def __init__(self):
+
+        self.handlers = defaultdict(list)
+
+    def subscribe(
+
+        self,
+
+        event_type: str,
+
+        handler
+
+    ):
+
+        self.handlers[event_type].append(
+            handler
+        )
+
+    def publish(
+
+        self,
+
+        event
+
+    ):
+
+        handlers = self.handlers.get(
+
+            event.event_type,
+
+            []
+
+        )
+
+        for handler in handlers:
+
+            handler(event)
 
 
-def publish(event):
-
-    for subscriber in subscribers:
-        subscriber(event)
-
-from core.events.bus import subscribe
-from modules.inventory.subscribers import inventory_subscriber
-
-subscribe(inventory_subscriber)
+event_bus = EventBus()

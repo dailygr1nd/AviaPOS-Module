@@ -1,3 +1,121 @@
+
+# AviaPOS Architecture
+
+## What AviaPOS Is
+
+AviaPOS is a Merchant Operating System designed for African SMEs.
+
+It is intentionally not an ERP.
+
+The platform focuses on four core merchant activities:
+
+1. Sales
+2. Inventory
+3. Expenses
+4. Receivables
+
+These four domains provide the majority of operational visibility required by small and medium businesses.
+
+---
+
+## Architectural Principles
+
+### Event-First
+
+Business actions generate immutable events.
+
+Examples:
+
+- Sale Created
+- Inventory Received
+- Expense Recorded
+- Debt Created
+
+Events become the source of truth.
+
+---
+
+### PostgreSQL as System of Record
+
+PostgreSQL stores:
+
+- Event Store
+- Snapshots
+- Projections
+- Merchant Metadata
+
+The database is the authoritative ledger.
+
+---
+
+### Redis as Event Transport
+
+Redis Streams distribute events to workers.
+
+This enables:
+
+- Asynchronous projections
+- Background processing
+- Future RailOne integration
+- Horizontal scaling
+
+---
+
+### Offline First
+
+AviaPOS is designed to operate in environments with unreliable connectivity.
+
+Future mobile clients maintain a local event store and synchronize business events when connectivity becomes available.
+
+Synchronization is event-based rather than state-based.
+
+---
+
+### Snapshot-Based Recovery
+
+Aggregates are periodically snapshotted.
+
+Recovery flow:
+
+Snapshot
+→ Load State
+→ Replay Remaining Events
+
+instead of replaying the entire event history.
+
+---
+
+### RailOne Compatibility
+
+AviaPOS is designed to integrate with RailOne without custody of customer funds.
+
+AviaPOS produces business events.
+
+RailOne handles routing, settlement, liquidity visibility, and payment orchestration.
+
+
+## Core Business Domains
+
+AviaPOS intentionally focuses on four merchant domains:
+
+### Sales
+
+Tracks money entering the business.
+
+### Inventory
+
+Tracks stock movement and inventory valuation.
+
+### Expenses
+
+Tracks money leaving the business.
+
+### Receivables
+
+Tracks money owed to the business.
+
+Together these provide a complete operational picture for most SMEs without introducing ERP-level complexity.
+
 # AviaPOS
 
 AviaPOS is a lightweight Merchant Operating System (Merchant OS) built by Avia Technologies.
@@ -96,8 +214,56 @@ Financial assets remain within regulated institutions.
 Future payment orchestration is handled through RailOne.
 
 ---
+## Financial Architecture
 
-## Architecture
+AviaPOS separates business activity from payment activity.
+
+Business domains:
+
+- Sales
+- Inventory
+- Expenses
+- Receivables
+- Payables
+
+do not directly move money.
+
+All financial settlement flows through the Payment Domain.
+
+Examples:
+
+SALE
+→ PAYMENT
+
+RECEIVABLE
+→ PAYMENT
+
+PAYABLE
+→ PAYMENT
+
+EXPENSE
+→ PAYMENT
+
+This creates a single financial language across the platform and simplifies future RailOne integration.
+
+---
+
+## Design Goal
+
+AviaPOS is not intended to become an ERP.
+
+It is intended to become a Merchant Operating System.
+
+The platform focuses on the smallest set of operational primitives required to run an SME:
+
+- Sales
+- Inventory
+- Expenses
+- Receivables
+- Payables
+- Payments
+
+Everything else should be implemented only if it directly supports one of these domains.
 
 
 
@@ -107,11 +273,11 @@ Future payment orchestration is handled through RailOne.
 
 ## Modules
 
-### Sales
+## Sales
 
 Records sales transactions and receipts.
 
-### Inventory
+## Inventory
 
 Tracks stock movement and availability.
 
@@ -127,7 +293,7 @@ Tracks branch-to-branch operational transfers.
 
 Tracks supplier obligations.
 
-### Expenses
+## Expenses
 
 Tracks operational spending.
 

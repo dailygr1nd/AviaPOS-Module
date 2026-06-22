@@ -17,30 +17,28 @@ from infrastructure.event_store.repository import (
 )
 
 
-def create_expense(
+def create_receivable(
 
     merchant_id: str,
 
     branch_id: str,
 
-    category: str,
+    customer_id: str,
 
-    description: str,
+    sale_id: str,
 
-    amount: float,
-
-    reference: str | None
+    amount: float
 
 ):
 
-    expense_id = str(
+    receivable_id = str(
         uuid.uuid4()
     )
 
     payload = {
 
-        "expense_id":
-            expense_id,
+        "receivable_id":
+            receivable_id,
 
         "merchant_id":
             merchant_id,
@@ -48,23 +46,20 @@ def create_expense(
         "branch_id":
             branch_id,
 
-        "category":
-            category,
+        "customer_id":
+            customer_id,
 
-        "description":
-            description,
+        "sale_id":
+            sale_id,
 
         "amount":
-            amount,
-
-        "reference":
-            reference
+            amount
 
     }
 
     event = create_event(
 
-        EventType.EXPENSE_CREATED,
+        EventType.RECEIVABLE_CREATED,
 
         merchant_id,
 
@@ -83,47 +78,13 @@ def create_expense(
     return event
 
 
-def approve_expense(
+def record_payment(
 
-    expense_id: str,
-
-    merchant_id: str
-
-):
-
-    payload = {
-
-        "expense_id":
-            expense_id
-
-    }
-
-    event = create_event(
-
-        EventType.EXPENSE_APPROVED,
-
-        merchant_id,
-
-        payload
-
-    )
-
-    db = SessionLocal()
-
-    EventRepository(
-        db
-    ).append(
-        event
-    )
-
-    return event
-
-
-def pay_expense(
-
-    expense_id: str,
+    receivable_id: str,
 
     merchant_id: str,
+
+    amount: float,
 
     payment_method: str
 
@@ -131,8 +92,11 @@ def pay_expense(
 
     payload = {
 
-        "expense_id":
-            expense_id,
+        "receivable_id":
+            receivable_id,
+
+        "amount":
+            amount,
 
         "payment_method":
             payment_method
@@ -141,7 +105,7 @@ def pay_expense(
 
     event = create_event(
 
-        EventType.EXPENSE_PAID,
+        EventType.RECEIVABLE_PAYMENT_RECORDED,
 
         merchant_id,
 
