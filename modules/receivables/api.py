@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from fastapi import Depends
+from fastapi import Header
 from fastapi import HTTPException
 
 from api.auth.dependencies import (
@@ -8,14 +9,28 @@ from api.auth.dependencies import (
     require_merchant_scope
 )
 
+from core.commands.registry import (
+    command_bus,
+    register_command_handlers
+)
+
+from infrastructure.concurrency.exceptions import (
+    OptimisticConcurrencyError
+)
+
+from infrastructure.idempotency.repository import (
+    IdempotencyConflict,
+    IdempotencyInProgress
+)
+
+from modules.receivables.commands import (
+    CreateReceivableCommand,
+    RecordReceivablePaymentCommand
+)
+
 from modules.receivables.schemas import (
     CreateReceivableRequest,
     RecordPaymentRequest
-)
-
-from modules.receivables.service import (
-    create_receivable,
-    record_payment
 )
 
 from modules.receivables.query_service import (
@@ -33,10 +48,55 @@ router = APIRouter(
 )
 
 
+def _handle_command_error(
+    exc: Exception
+):
+
+    if isinstance(
+        exc,
+        OptimisticConcurrencyError
+    ):
+
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc)
+        )
+
+    if isinstance(
+        exc,
+        IdempotencyInProgress
+    ):
+
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc)
+        )
+
+    if isinstance(
+        exc,
+        IdempotencyConflict
+    ):
+
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc)
+        )
+
+    raise HTTPException(
+        status_code=400,
+        detail=str(exc)
+    )
+
+
 @router.post("/")
 def create(
 
     request: CreateReceivableRequest,
+
+    idempotency_key: str | None = Header(
+        default=None,
+        alias="Idempotency-Key"
+    ),
 
     current_user: AuthenticatedUser = Depends(
         get_current_user
@@ -49,27 +109,40 @@ def create(
         current_user
     )
 
+    register_command_handlers()
+
     try:
 
-        return create_receivable(
+        return command_bus.dispatch(
 
-            merchant_id=request.merchant_id,
+            CreateReceivableCommand(
 
-            branch_id=request.branch_id,
+                merchant_id=
+                    request.merchant_id,
 
-            customer_id=request.customer_id,
+                branch_id=
+                    request.branch_id,
 
-            sale_id=request.sale_id,
+                customer_id=
+                    request.customer_id,
 
-            amount=request.amount
+                sale_id=
+                    request.sale_id,
+
+                amount=
+                    request.amount,
+
+                idempotency_key=
+                    idempotency_key
+
+            )
 
         )
 
     except Exception as exc:
 
-        raise HTTPException(
-            status_code=400,
-            detail=str(exc)
+        _handle_command_error(
+            exc
         )
 
 
@@ -78,6 +151,16 @@ def payment(
 
     request: RecordPaymentRequest,
 
+    idempotency_key: str | None = Header(
+        default=None,
+        alias="Idempotency-Key"
+    ),
+
+    expected_version: int | None = Header(
+        default=None,
+        alias="X-Expected-Version"
+    ),
+
     current_user: AuthenticatedUser = Depends(
         get_current_user
     )
@@ -89,25 +172,47 @@ def payment(
         current_user
     )
 
+    if expected_version is None:
+
+        raise HTTPException(
+            status_code=428,
+            detail="X-Expected-Version header is required."
+        )
+
+    register_command_handlers()
+
     try:
 
-        return record_payment(
+        return command_bus.dispatch(
 
-            receivable_id=request.receivable_id,
+            RecordReceivablePaymentCommand(
 
-            merchant_id=request.merchant_id,
+                merchant_id=
+                    request.merchant_id,
 
-            amount=request.amount,
+                receivable_id=
+                    request.receivable_id,
 
-            payment_method=request.payment_method
+                amount=
+                    request.amount,
+
+                payment_method=
+                    request.payment_method,
+
+                expected_version=
+                    expected_version,
+
+                idempotency_key=
+                    idempotency_key
+
+            )
 
         )
 
     except Exception as exc:
 
-        raise HTTPException(
-            status_code=400,
-            detail=str(exc)
+        _handle_command_error(
+            exc
         )
 
 

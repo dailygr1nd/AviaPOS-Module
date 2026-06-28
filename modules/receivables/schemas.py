@@ -2,9 +2,7 @@ from pydantic import BaseModel
 
 
 class CreateReceivableRequest(
-
     BaseModel
-
 ):
 
     merchant_id: str
@@ -19,9 +17,7 @@ class CreateReceivableRequest(
 
 
 class RecordPaymentRequest(
-
     BaseModel
-
 ):
 
     receivable_id: str

@@ -42,6 +42,16 @@ def register_command_handlers():
         CancelPaymentCommandHandler
     )
 
+    from modules.receivables.commands import (
+        CreateReceivableCommand,
+        RecordReceivablePaymentCommand
+    )
+
+    from modules.receivables.command_handlers import (
+        CreateReceivableCommandHandler,
+        RecordReceivablePaymentCommandHandler
+    )
+
     command_bus.register(
 
         CreateExpenseCommand,
@@ -95,6 +105,22 @@ def register_command_handlers():
         CancelPaymentCommand,
 
         CancelPaymentCommandHandler()
+
+    )
+
+    command_bus.register(
+
+        CreateReceivableCommand,
+
+        CreateReceivableCommandHandler()
+
+    )
+
+    command_bus.register(
+
+        RecordReceivablePaymentCommand,
+
+        RecordReceivablePaymentCommandHandler()
 
     )
 

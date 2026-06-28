@@ -21,6 +21,7 @@ class ReceivableProjector(
         self,
         db
     ):
+
         self.db = db
 
     def handle(
@@ -33,7 +34,7 @@ class ReceivableProjector(
         ):
 
             self.create(
-                event.payload
+                event
             )
 
         elif event.event_type == (
@@ -41,13 +42,42 @@ class ReceivableProjector(
         ):
 
             self.record_payment(
-                event.payload
+                event
+            )
+
+        elif event.event_type == (
+            "RECEIVABLE_SETTLED"
+        ):
+
+            self.settle(
+                event
             )
 
     def create(
         self,
-        payload
+        event
     ):
+
+        payload = event.payload
+
+        existing = (
+
+            self.db.query(
+                ReceivableProjection
+            )
+
+            .filter(
+                ReceivableProjection.receivable_id
+                == payload["receivable_id"]
+            )
+
+            .first()
+
+        )
+
+        if existing:
+
+            return
 
         row = ReceivableProjection(
 
@@ -76,19 +106,26 @@ class ReceivableProjector(
 
             status="OPEN",
 
+            version=
+                event.version,
+
             created_at=
                 datetime.utcnow()
 
         )
 
-        self.db.add(row)
+        self.db.add(
+            row
+        )
 
         self.db.commit()
 
     def record_payment(
         self,
-        payload
+        event
     ):
+
+        payload = event.payload
 
         row = (
 
@@ -98,8 +135,7 @@ class ReceivableProjector(
 
             .filter(
                 ReceivableProjection.receivable_id
-                ==
-                payload["receivable_id"]
+                == payload["receivable_id"]
             )
 
             .first()
@@ -107,6 +143,7 @@ class ReceivableProjector(
         )
 
         if not row:
+
             return
 
         row.paid_amount += (
@@ -116,14 +153,57 @@ class ReceivableProjector(
         row.balance = (
 
             row.amount
-            - row.paid_amount
+
+            -
+
+            row.paid_amount
 
         )
 
         if row.balance <= 0:
 
-            row.status = (
-                "SETTLED"
+            row.balance = 0
+
+            row.status = "SETTLED"
+
+        else:
+
+            row.status = "OPEN"
+
+        row.version = event.version
+
+        self.db.commit()
+
+    def settle(
+        self,
+        event
+    ):
+
+        payload = event.payload
+
+        row = (
+
+            self.db.query(
+                ReceivableProjection
             )
+
+            .filter(
+                ReceivableProjection.receivable_id
+                == payload["receivable_id"]
+            )
+
+            .first()
+
+        )
+
+        if not row:
+
+            return
+
+        row.balance = 0
+
+        row.status = "SETTLED"
+
+        row.version = event.version
 
         self.db.commit()

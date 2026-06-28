@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import (
+    BigInteger,
     String,
     Float,
     DateTime
@@ -11,7 +12,9 @@ from sqlalchemy.orm import (
     mapped_column
 )
 
-from infrastructure.database.base import Base
+from infrastructure.database.base import (
+    Base
+)
 
 
 class ReceivableProjection(Base):
@@ -39,7 +42,8 @@ class ReceivableProjection(Base):
     )
 
     sale_id: Mapped[str] = mapped_column(
-        String(100)
+        String(100),
+        index=True
     )
 
     amount: Mapped[float] = mapped_column(
@@ -56,7 +60,13 @@ class ReceivableProjection(Base):
     )
 
     status: Mapped[str] = mapped_column(
-        String(50)
+        String(50),
+        index=True
+    )
+
+    version: Mapped[int] = mapped_column(
+        BigInteger,
+        default=1
     )
 
     created_at: Mapped[datetime] = mapped_column(

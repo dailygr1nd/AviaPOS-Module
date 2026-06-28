@@ -282,3 +282,29 @@ Redis Streams
 Payment Projector
     ↓
 payment_projection
+
+
+## Receivable Command Flow
+
+Receivables now use the same hardened write flow as Expenses and Payments.
+
+```text
+Receivable API
+    ↓
+Receivable Command
+    ↓
+Command Bus
+    ↓
+Receivable Command Handler
+    ↓
+Unit of Work
+    ↓
+events + outbox + idempotency
+    ↓
+Outbox Publisher
+    ↓
+Redis Streams
+    ↓
+Receivable Projector
+    ↓
+receivable_projection
