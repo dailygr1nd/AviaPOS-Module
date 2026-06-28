@@ -32,6 +32,7 @@ from modules.receivables.api import router as receivables_router
 from modules.control_center.api import router as control_router
 from modules.control_center.api_trace import router as trace_router
 from modules.control_center.api_debug import router as debug_router
+from modules.control_center.api_integrity import router as integrity_router
 
 
 app = FastAPI(
@@ -145,4 +146,10 @@ app.include_router(
     debug_router,
     prefix="/control",
     tags=["Debug"]
+)
+
+app.include_router(
+    integrity_router,
+    prefix="/control",
+    tags=["Integrity"]
 )

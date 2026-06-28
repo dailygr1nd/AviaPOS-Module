@@ -277,3 +277,63 @@ class EventRepository:
             .all()
 
         )
+
+    def get_by_merchant_ordered(
+
+        self,
+
+        merchant_id: str
+
+    ):
+
+        return (
+
+            self.db.query(
+                EventModel
+            )
+
+            .filter(
+                EventModel.merchant_id
+                == merchant_id
+            )
+
+            .order_by(
+                EventModel.id.asc()
+            )
+
+            .all()
+
+        )
+
+    def get_by_aggregate_ordered(
+
+        self,
+
+        merchant_id: str,
+
+        aggregate_id: str
+
+    ):
+
+        return (
+
+            self.db.query(
+                EventModel
+            )
+
+            .filter(
+                EventModel.merchant_id
+                == merchant_id,
+
+                EventModel.aggregate_id
+                == aggregate_id
+
+            )
+
+            .order_by(
+                EventModel.version.asc()
+            )
+
+            .all()
+
+        )

@@ -184,3 +184,29 @@ For updates to an existing aggregate, the client must send:
 
 ```text
 X-Expected-Version: <current-version-known-by-client>
+
+
+## Reliability Pattern: Hash Chain Verification
+
+AviaPOS events are hash-chained.
+
+Each event stores:
+
+- previous_hash
+- current_hash
+- payload
+- event_type
+- merchant_id
+
+The verifier recomputes the event hash from the stored event payload and confirms that:
+
+1. The event payload has not been altered.
+2. The stored current_hash is correct.
+3. The event previous_hash links to the prior merchant event.
+4. The merchant event stream is intact from GENESIS onward.
+
+Control Center endpoints:
+
+```text
+GET /control/integrity/merchant/{merchant_id}
+GET /control/integrity/aggregate/{merchant_id}/{aggregate_id}

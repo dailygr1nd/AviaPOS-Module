@@ -1,54 +1,268 @@
-from core.events.event_hash import (
-    calculate_event_hash
+from core.events.hash import (
+    calculate_event_hash,
+    calculate_payload_hash
 )
+
 
 class ChainVerifier:
 
     @staticmethod
-    def verify(
+    def _value(
+        event,
+        key: str,
+        default=None
+    ):
 
-        events
+        if isinstance(
+            event,
+            dict
+        ):
+
+            return event.get(
+                key,
+                default
+            )
+
+        return getattr(
+            event,
+            key,
+            default
+        )
+
+    @classmethod
+    def _verify_single_event_hash(
+        cls,
+        event
+    ):
+
+        payload = cls._value(
+            event,
+            "payload",
+            {}
+        )
+
+        event_type = cls._value(
+            event,
+            "event_type"
+        )
+
+        merchant_id = cls._value(
+            event,
+            "merchant_id"
+        )
+
+        previous_hash = cls._value(
+            event,
+            "previous_hash"
+        )
+
+        current_hash = (
+
+            cls._value(
+                event,
+                "current_hash",
+                None
+            )
+
+            or
+
+            cls._value(
+                event,
+                "event_hash",
+                None
+            )
+
+        )
+
+        payload_hash = calculate_payload_hash(
+            payload
+        )
+
+        expected_hash = calculate_event_hash(
+
+            event_type,
+
+            merchant_id,
+
+            payload_hash,
+
+            previous_hash
+
+        )
+
+        return {
+
+            "valid":
+                expected_hash == current_hash,
+
+            "expected_hash":
+                expected_hash,
+
+            "actual_hash":
+                current_hash,
+
+            "payload_hash":
+                payload_hash
+
+        }
+
+    @classmethod
+    def verify_events(
+
+        cls,
+
+        events,
+
+        strict_previous_hash: bool = True
 
     ):
 
-        previous_hash = (
-            "GENESIS"
-        )
+        issues = []
+
+        previous_hash = "GENESIS"
+
+        checked = 0
 
         for event in events:
 
-            expected = (
+            checked += 1
 
-                calculate_event_hash(
+            event_id = cls._value(
+                event,
+                "event_id"
+            )
 
-                    event["event_type"],
+            db_id = cls._value(
+                event,
+                "id"
+            )
 
-                    event["merchant_id"],
+            stored_previous_hash = cls._value(
+                event,
+                "previous_hash"
+            )
 
-                    event["timestamp"],
+            current_hash = (
 
-                    previous_hash,
+                cls._value(
+                    event,
+                    "current_hash",
+                    None
+                )
 
-                    event["payload_hash"]
+                or
 
+                cls._value(
+                    event,
+                    "event_hash",
+                    None
                 )
 
             )
 
-            if (
-
-                expected
-
-                !=
-
-                event["event_hash"]
-
-            ):
-
-                return False
-
-            previous_hash = (
-                event["event_hash"]
+            hash_result = cls._verify_single_event_hash(
+                event
             )
 
-        return True
+            if not hash_result[
+                "valid"
+            ]:
+
+                issues.append(
+
+                    {
+
+                        "type":
+                            "INVALID_EVENT_HASH",
+
+                        "db_id":
+                            db_id,
+
+                        "event_id":
+                            event_id,
+
+                        "expected_hash":
+                            hash_result[
+                                "expected_hash"
+                            ],
+
+                        "actual_hash":
+                            hash_result[
+                                "actual_hash"
+                            ]
+
+                    }
+
+                )
+
+            if strict_previous_hash:
+
+                if stored_previous_hash != previous_hash:
+
+                    issues.append(
+
+                        {
+
+                            "type":
+                                "BROKEN_PREVIOUS_HASH_LINK",
+
+                            "db_id":
+                                db_id,
+
+                            "event_id":
+                                event_id,
+
+                            "expected_previous_hash":
+                                previous_hash,
+
+                            "actual_previous_hash":
+                                stored_previous_hash
+
+                        }
+
+                    )
+
+                previous_hash = current_hash
+
+        return {
+
+            "valid":
+                len(
+                    issues
+                ) == 0,
+
+            "events_checked":
+                checked,
+
+            "issues":
+                issues
+
+        }
+
+    @classmethod
+    def verify_merchant_chain(
+        cls,
+        events
+    ):
+
+        return cls.verify_events(
+
+            events,
+
+            strict_previous_hash=True
+
+        )
+
+    @classmethod
+    def verify_event_integrity(
+        cls,
+        events
+    ):
+
+        return cls.verify_events(
+
+            events,
+
+            strict_previous_hash=False
+
+        )
