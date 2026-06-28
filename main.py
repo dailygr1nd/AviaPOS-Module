@@ -44,7 +44,7 @@ app = FastAPI(
 
     title="AviaPOS",
 
-    version="0.7.0"
+    version="0.8.0"
 
 )
 
@@ -71,22 +71,37 @@ def startup():
         )
 
 
+# Routers with internal prefixes
 app.include_router(
     auth_router
 )
 
 app.include_router(
-    sales_router,
-    prefix="/sales",
-    tags=["Sales"]
+    sales_router
 )
 
 app.include_router(
-    inventory_router,
-    prefix="/inventory",
-    tags=["Inventory"]
+    inventory_router
 )
 
+app.include_router(
+    expenses_router
+)
+
+app.include_router(
+    payments_router
+)
+
+app.include_router(
+    receivables_router
+)
+
+app.include_router(
+    sync_router
+)
+
+
+# Legacy-compatible routers that currently do not define internal prefixes
 app.include_router(
     products_router,
     prefix="/products",
@@ -123,22 +138,8 @@ app.include_router(
     tags=["Transfers"]
 )
 
-app.include_router(
-    expenses_router
-)
 
-app.include_router(
-    payments_router
-)
-
-app.include_router(
-    receivables_router
-)
-
-app.include_router(
-    sync_router
-)
-
+# Control Center
 app.include_router(
     control_router,
     prefix="/control",

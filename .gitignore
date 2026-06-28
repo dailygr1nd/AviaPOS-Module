@@ -85,3 +85,52 @@ jwt-test-*.txt
 api-test-*.json
 openapi-snapshot*.json
 swagger-export*.json
+
+
+# Python compile/cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local DB artifacts
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.sqlite-journal
+aviapos.db
+storage/sqlite/*.db
+
+# Local env/secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# API/import test scratch
+api-test-*.json
+auth-test-*.json
+jwt-test-*.txt
+openapi-snapshot*.json
+swagger-export*.json
+
+# Offline sync test payloads
+local_events*.json
+sync-test-*.json
+offline-queue-*.json
+idempotency-test-*.json
+
+# Repomix / bundle exports
+repomix-output.*
+Pasted text*.txt
+bundles.json
+
+# IDE/editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
