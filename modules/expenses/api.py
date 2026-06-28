@@ -1,31 +1,26 @@
 from fastapi import APIRouter
+from fastapi import HTTPException
 
-from modules.expenses.schemas import (
-
-    ExpenseCreateRequest,
-
-    ExpenseApproveRequest,
-
-    ExpensePayRequest
-
+from core.commands.registry import (
+    command_bus,
+    register_command_handlers
 )
 
-from modules.expenses.service import (
+from modules.expenses.commands import (
+    CreateExpenseCommand,
+    ApproveExpenseCommand,
+    PayExpenseCommand
+)
 
-    create_expense,
-
-    approve_expense,
-
-    pay_expense
-
+from modules.expenses.schemas import (
+    ExpenseCreateRequest,
+    ExpenseApproveRequest,
+    ExpensePayRequest
 )
 
 from modules.expenses.query_service import (
-
     get_expenses,
-
     get_expense_summary
-
 )
 
 
@@ -40,40 +35,138 @@ router = APIRouter(
 
 @router.post("/")
 def create(
-
-    request:
-    ExpenseCreateRequest
-
+    request: ExpenseCreateRequest
 ):
 
-    return create_expense(
+    register_command_handlers()
 
-        merchant_id=
-            request.merchant_id,
+    try:
 
-        branch_id=
-            request.branch_id,
+        return command_bus.dispatch(
 
-        category=
-            request.category,
+            CreateExpenseCommand(
 
-        description=
-            request.description,
+                merchant_id=
+                    request.merchant_id,
 
-        amount=
-            request.amount,
+                branch_id=
+                    request.branch_id,
 
-        reference=
-            request.reference
+                category=
+                    request.category,
 
-    )
+                description=
+                    request.description,
+
+                amount=
+                    request.amount,
+
+                reference=
+                    request.reference
+
+            )
+
+        )
+
+    except ValueError as exc:
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail=str(
+                exc
+            )
+
+        )
+
+
+@router.post("/approve")
+def approve(
+    request: ExpenseApproveRequest
+):
+
+    register_command_handlers()
+
+    try:
+
+        return command_bus.dispatch(
+
+            ApproveExpenseCommand(
+
+                merchant_id=
+                    getattr(
+                        request,
+                        "merchant_id",
+                        ""
+                    ),
+
+                expense_id=
+                    request.expense_id
+
+            )
+
+        )
+
+    except ValueError as exc:
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail=str(
+                exc
+            )
+
+        )
+
+
+@router.post("/pay")
+def pay(
+    request: ExpensePayRequest
+):
+
+    register_command_handlers()
+
+    try:
+
+        return command_bus.dispatch(
+
+            PayExpenseCommand(
+
+                merchant_id=
+                    getattr(
+                        request,
+                        "merchant_id",
+                        ""
+                    ),
+
+                expense_id=
+                    request.expense_id,
+
+                payment_method=
+                    request.payment_method
+
+            )
+
+        )
+
+    except ValueError as exc:
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail=str(
+                exc
+            )
+
+        )
 
 
 @router.get("/{merchant_id}")
 def list_expenses(
-
     merchant_id: str
-
 ):
 
     return get_expenses(
@@ -81,13 +174,9 @@ def list_expenses(
     )
 
 
-@router.get(
-    "/summary/{merchant_id}"
-)
+@router.get("/summary/{merchant_id}")
 def summary(
-
     merchant_id: str
-
 ):
 
     return get_expense_summary(

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from dataclasses import field
 
 
 @dataclass
@@ -19,3 +20,16 @@ class Event:
     event_hash: str
 
     payload: dict
+
+    aggregate_id: str = "UNKNOWN"
+
+    version: int = 1
+
+    metadata: dict = field(
+        default_factory=dict
+    )
+
+    @property
+    def current_hash(self) -> str:
+
+        return self.event_hash

@@ -1,17 +1,15 @@
 import json
 
+from types import SimpleNamespace
+
 from infrastructure.redis.client import (
     redis_client
 )
 
 from infrastructure.redis.consumer import (
-
     GROUP_NAME,
-
     CONSUMER_NAME,
-
     EVENT_STREAM
-
 )
 
 from infrastructure.database.session import (
@@ -22,86 +20,155 @@ from modules.inventory.projector import (
     InventoryProjector
 )
 
-
 from modules.expenses.projector import (
     ExpenseProjector
 )
 
-expense_projector = (
-    ExpenseProjector(db)
+from modules.payments.projector import (
+    PaymentProjector
 )
+
+from modules.receivables.projector import (
+    ReceivableProjector
+)
+
+
+def _build_event(
+    data: dict
+):
+
+    return SimpleNamespace(
+
+        persisted_event_id=
+            data.get(
+                "persisted_event_id"
+            ),
+
+        event_id=
+            data.get(
+                "event_id"
+            ),
+
+        event_type=
+            data.get(
+                "event_type"
+            ),
+
+        merchant_id=
+            data.get(
+                "merchant_id"
+            ),
+
+        aggregate_id=
+            data.get(
+                "aggregate_id"
+            ),
+
+        version=
+            int(
+                data.get(
+                    "version",
+                    1
+                )
+            ),
+
+        previous_hash=
+            data.get(
+                "previous_hash"
+            ),
+
+        current_hash=
+            data.get(
+                "current_hash"
+            ),
+
+        payload=
+            json.loads(
+                data.get(
+                    "payload",
+                    "{}"
+                )
+            )
+
+    )
 
 
 def start_projection_worker():
 
-
-    expense_projector.handle(
-    event
-    )
-
     db = SessionLocal()
 
-    inventory_projector = (
-        InventoryProjector(db)
-    )
+    projectors = [
+
+        InventoryProjector(
+            db
+        ),
+
+        ExpenseProjector(
+            db
+        ),
+
+        PaymentProjector(
+            db
+        ),
+
+        ReceivableProjector(
+            db
+        )
+
+    ]
 
     while True:
 
-        messages = (
+        messages = redis_client.xreadgroup(
 
-            redis_client.xreadgroup(
+            GROUP_NAME,
 
-                GROUP_NAME,
+            CONSUMER_NAME,
 
-                CONSUMER_NAME,
+            {
+                EVENT_STREAM: ">"
+            },
 
-                {
+            count=10,
 
-                    EVENT_STREAM: ">"
-
-                },
-
-                count=10,
-
-                block=5000
-
-            )
+            block=5000
 
         )
+
+        if not messages:
+
+            continue
 
         for _, records in messages:
 
             for msg_id, data in records:
 
-                event_type = data[
-                    "event_type"
-                ]
-
-                payload = eval(
-                    data["payload"]
+                event = _build_event(
+                    data
                 )
 
-                class Event:
-                    pass
+                try:
 
-                event = Event()
+                    for projector in projectors:
 
-                event.event_type = (
-                    event_type
-                )
+                        projector.handle(
+                            event
+                        )
 
-                event.payload = payload
+                    redis_client.xack(
 
-                inventory_projector.handle(
-                    event
-                )
+                        EVENT_STREAM,
 
-                redis_client.xack(
+                        GROUP_NAME,
 
-                    EVENT_STREAM,
+                        msg_id
 
-                    GROUP_NAME,
+                    )
 
-                    msg_id
+                except Exception as exc:
 
-                )
+                    db.rollback()
+
+                    print(
+                        f"Projection failed for {event.event_id}: {exc}"
+                    )

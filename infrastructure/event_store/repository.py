@@ -7,14 +7,22 @@ from infrastructure.event_store.models import (
 
 class EventRepository:
 
-    def __init__(self, db: Session):
+    def __init__(
+        self,
+        db: Session
+    ):
+
         self.db = db
 
-    def append(self, event):
+    def append(
 
-        from infrastructure.redis.streams import (
-    publish_event
-    )
+        self,
+
+        event,
+
+        commit: bool = True
+
+    ):
 
         model = EventModel(
 
@@ -26,6 +34,8 @@ class EventRepository:
 
             aggregate_id=event.aggregate_id,
 
+            version=event.version,
+
             payload=event.payload,
 
             previous_hash=event.previous_hash,
@@ -34,15 +44,64 @@ class EventRepository:
 
         )
 
-        self.db.add(model)
+        self.db.add(
+            model
+        )
 
-        self.db.commit()
-        
-        publish_event(event)
+        if commit:
 
-        self.db.refresh(model)
+            try:
+
+                self.db.commit()
+
+                self.db.refresh(
+                    model
+                )
+
+            except Exception:
+
+                self.db.rollback()
+
+                raise
+
+        else:
+
+            self.db.flush()
 
         return model
+
+    def get_latest_hash(
+
+        self,
+
+        merchant_id: str
+
+    ) -> str:
+
+        latest = (
+
+            self.db.query(
+                EventModel
+            )
+
+            .filter(
+                EventModel.merchant_id
+                == merchant_id
+            )
+
+            .order_by(
+                EventModel.id.desc()
+            )
+
+            .first()
+
+        )
+
+        if not latest:
+
+            return "GENESIS"
+
+        return latest.current_hash
 
     def get_after(
 
@@ -54,7 +113,9 @@ class EventRepository:
 
         return (
 
-            self.db.query(EventModel)
+            self.db.query(
+                EventModel
+            )
 
             .filter(
                 EventModel.id > event_id
@@ -67,34 +128,67 @@ class EventRepository:
             .all()
 
         )
-    
+
     def get_after_id(
 
-    self,
+        self,
 
-    last_event_id: int,
+        last_event_id: int,
 
-    limit: int = 1000
+        limit: int = 1000
 
-):
+    ):
 
-    return (
+        return (
 
-        self.db.query(
-            EventModel
+            self.db.query(
+                EventModel
+            )
+
+            .filter(
+                EventModel.id > last_event_id
+            )
+
+            .order_by(
+                EventModel.id.asc()
+            )
+
+            .limit(
+                limit
+            )
+
+            .all()
+
         )
 
-        .filter(
-            EventModel.id >
-            last_event_id
+    def get_events_after_version(
+
+        self,
+
+        aggregate_id: str,
+
+        version: int
+
+    ):
+
+        return (
+
+            self.db.query(
+                EventModel
+            )
+
+            .filter(
+                EventModel.aggregate_id
+                == aggregate_id,
+
+                EventModel.version
+                > version
+            )
+
+            .order_by(
+                EventModel.version.asc()
+            )
+
+            .all()
+
         )
-
-        .order_by(
-            EventModel.id.asc()
-        )
-
-        .limit(limit)
-
-        .all()
-
-    )
