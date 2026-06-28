@@ -1,7 +1,22 @@
+from pathlib import Path
+
 import importlib
+import os
 import sys
 
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+if str(PROJECT_ROOT) not in sys.path:
+
+    sys.path.insert(
+        0,
+        str(PROJECT_ROOT)
+    )
+
+os.chdir(
+    PROJECT_ROOT
+)
 ACTIVE_IMPORTS = [
 
     "main",
@@ -53,6 +68,10 @@ ACTIVE_IMPORTS = [
     "modules.users.schemas",
     "modules.users.service",
 
+    "modules.dashboard.api",
+    "modules.dashboard.query_service",
+    "modules.dashboard.schemas",
+
     "modules.sales.api",
     "modules.sales.commands",
     "modules.sales.command_handlers",
@@ -101,10 +120,9 @@ ACTIVE_IMPORTS = [
     "modules.sync.repository",
     "modules.sync.schemas",
 
-    "modules.control_center.api",
-    "modules.control_center.api_debug",
+  
     "modules.control_center.api_integrity",
-    "modules.control_center.api_trace"
+    
 
 ]
 

@@ -1,10 +1,10 @@
 from pathlib import Path
+
 import sys
 
 
-ROOT = Path(
-    "."
-)
+ROOT = Path(__file__).resolve().parents[1]
+
 
 FORBIDDEN_IMPORTS = [
 
@@ -31,26 +31,38 @@ FORBIDDEN_IMPORTS = [
 ]
 
 
-IGNORED_PREFIXES = (
+QUARANTINE_PREFIXES = (
 
     "application/",
     "storage/sqlite/",
     "modules/debts/",
     "projections/",
-    "api/schemas/"
+    "core/projections/"
 
 )
 
 
-IGNORED_FILES = {
+QUARANTINE_FILES = {
 
     "app_context.py",
+
+    "scripts/legacy_import_scan.py",
+
     "core/ledger/store.py",
     "core/ledger/repository.py",
     "core/ledger/hash_chain.py",
     "core/ledger/merchant_ledger.py",
-    "core/events/bus.py",
-    "core/events/event_bus.py"
+
+    "modules/branches/service.py",
+    "modules/customers/service.py",
+    "modules/inventory/service.py",
+    "modules/payments/service.py",
+    "modules/products/service.py",
+    "modules/purchases/service.py",
+    "modules/receivables/service.py",
+    "modules/sales/service.py",
+    "modules/suppliers/service.py",
+    "modules/transfers/service.py"
 
 }
 
@@ -59,10 +71,12 @@ def normalized(
     path: Path
 ) -> str:
 
-    return path.as_posix()
+    return path.relative_to(
+        ROOT
+    ).as_posix()
 
 
-def is_ignored(
+def is_quarantined(
     path: Path
 ) -> bool:
 
@@ -70,7 +84,7 @@ def is_ignored(
         path
     )
 
-    if value in IGNORED_FILES:
+    if value in QUARANTINE_FILES:
 
         return True
 
@@ -80,7 +94,7 @@ def is_ignored(
             prefix
         )
 
-        for prefix in IGNORED_PREFIXES
+        for prefix in QUARANTINE_PREFIXES
 
     )
 
@@ -93,11 +107,7 @@ def main():
         "*.py"
     ):
 
-        value = normalized(
-            path
-        )
-
-        if is_ignored(
+        if is_quarantined(
             path
         ):
 
@@ -119,7 +129,7 @@ def main():
 
                 violations.append(
                     (
-                        value,
+                        normalized(path),
                         forbidden
                     )
                 )

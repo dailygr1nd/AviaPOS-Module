@@ -20,3 +20,15 @@ Flutter should treat AviaPOS as a normal REST API.
 
 ```text
 POST /auth/bootstrap-owner
+
+
+## Dashboard
+
+Dashboard is read-only.
+
+It reads from PostgreSQL projection tables and does not replay events.
+
+### Merchant Dashboard
+
+```text
+GET /dashboard/{merchant_id}

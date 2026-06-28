@@ -1,10 +1,15 @@
-from pydantic import BaseModel
+from dataclasses import dataclass
 
 from typing import Optional
 
+from core.commands.command import (
+    Command
+)
 
-class CreatePaymentRequest(
-    BaseModel
+
+@dataclass
+class CreatePaymentCommand(
+    Command
 ):
 
     merchant_id: str
@@ -19,18 +24,26 @@ class CreatePaymentRequest(
 
     notes: Optional[str] = None
 
+    idempotency_key: Optional[str] = None
 
-class CompletePaymentRequest(
-    BaseModel
+
+@dataclass
+class CompletePaymentCommand(
+    Command
 ):
 
     merchant_id: str
 
     payment_id: str
 
+    expected_version: int
 
-class FailPaymentRequest(
-    BaseModel
+    idempotency_key: Optional[str] = None
+
+
+@dataclass
+class FailPaymentCommand(
+    Command
 ):
 
     merchant_id: str
@@ -39,9 +52,14 @@ class FailPaymentRequest(
 
     reason: Optional[str] = None
 
+    expected_version: int = 1
 
-class CancelPaymentRequest(
-    BaseModel
+    idempotency_key: Optional[str] = None
+
+
+@dataclass
+class CancelPaymentCommand(
+    Command
 ):
 
     merchant_id: str
@@ -49,3 +67,7 @@ class CancelPaymentRequest(
     payment_id: str
 
     reason: Optional[str] = None
+
+    expected_version: int = 1
+
+    idempotency_key: Optional[str] = None

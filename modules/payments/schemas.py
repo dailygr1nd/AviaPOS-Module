@@ -1,6 +1,7 @@
-from pydantic import BaseModel
-
 from typing import Optional
+
+from pydantic import BaseModel
+from pydantic import Field
 
 
 class CreatePaymentRequest(
@@ -9,7 +10,9 @@ class CreatePaymentRequest(
 
     merchant_id: str
 
-    amount: float
+    amount: float = Field(
+        gt=0
+    )
 
     payment_method: str
 
@@ -18,3 +21,34 @@ class CreatePaymentRequest(
     reference_id: str
 
     notes: Optional[str] = None
+
+
+class CompletePaymentRequest(
+    BaseModel
+):
+
+    merchant_id: str
+
+    payment_id: str
+
+
+class FailPaymentRequest(
+    BaseModel
+):
+
+    merchant_id: str
+
+    payment_id: str
+
+    reason: Optional[str] = None
+
+
+class CancelPaymentRequest(
+    BaseModel
+):
+
+    merchant_id: str
+
+    payment_id: str
+
+    reason: Optional[str] = None
