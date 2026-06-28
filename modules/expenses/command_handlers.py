@@ -12,11 +12,26 @@ from infrastructure.database.unit_of_work import (
     UnitOfWork
 )
 
+from infrastructure.idempotency.request_hash import (
+    calculate_request_hash
+)
+
 from modules.expenses.commands import (
     CreateExpenseCommand,
     ApproveExpenseCommand,
     PayExpenseCommand
 )
+
+
+def _require_idempotency_key(
+    idempotency_key: str | None
+):
+
+    if not idempotency_key:
+
+        raise ValueError(
+            "Idempotency-Key header is required."
+        )
 
 
 class CreateExpenseCommandHandler:
@@ -26,13 +41,67 @@ class CreateExpenseCommandHandler:
         command: CreateExpenseCommand
     ):
 
+        _require_idempotency_key(
+            command.idempotency_key
+        )
+
         if command.amount <= 0:
 
             raise ValueError(
                 "Expense amount must be positive."
             )
 
+        request_hash = calculate_request_hash(
+
+            {
+
+                "merchant_id":
+                    command.merchant_id,
+
+                "branch_id":
+                    command.branch_id,
+
+                "category":
+                    command.category,
+
+                "description":
+                    command.description,
+
+                "amount":
+                    command.amount,
+
+                "reference":
+                    command.reference
+
+            }
+
+        )
+
         with UnitOfWork() as uow:
+
+            idempotency_record, is_new = (
+
+                uow.idempotency.start(
+
+                    merchant_id=
+                        command.merchant_id,
+
+                    idempotency_key=
+                        command.idempotency_key,
+
+                    command_name=
+                        "CreateExpenseCommand",
+
+                    request_hash=
+                        request_hash
+
+                )
+
+            )
+
+            if not is_new:
+
+                return idempotency_record.response_payload
 
             expense_id = str(
                 uuid.uuid4()
@@ -79,7 +148,14 @@ class CreateExpenseCommandHandler:
                 aggregate_id=
                     expense_id,
 
-                version=1
+                version=1,
+
+                metadata={
+
+                    "idempotency_key":
+                        command.idempotency_key
+
+                }
 
             )
 
@@ -100,7 +176,7 @@ class CreateExpenseCommandHandler:
 
             )
 
-            return {
+            response = {
 
                 "success": True,
 
@@ -115,6 +191,16 @@ class CreateExpenseCommandHandler:
 
             }
 
+            uow.idempotency.complete(
+
+                idempotency_record,
+
+                response
+
+            )
+
+            return response
+
 
 class ApproveExpenseCommandHandler:
 
@@ -123,13 +209,61 @@ class ApproveExpenseCommandHandler:
         command: ApproveExpenseCommand
     ):
 
+        _require_idempotency_key(
+            command.idempotency_key
+        )
+
+        if not command.merchant_id:
+
+            raise ValueError(
+                "Merchant ID is required."
+            )
+
         if not command.expense_id:
 
             raise ValueError(
                 "Expense ID is required."
             )
 
+        request_hash = calculate_request_hash(
+
+            {
+
+                "merchant_id":
+                    command.merchant_id,
+
+                "expense_id":
+                    command.expense_id
+
+            }
+
+        )
+
         with UnitOfWork() as uow:
+
+            idempotency_record, is_new = (
+
+                uow.idempotency.start(
+
+                    merchant_id=
+                        command.merchant_id,
+
+                    idempotency_key=
+                        command.idempotency_key,
+
+                    command_name=
+                        "ApproveExpenseCommand",
+
+                    request_hash=
+                        request_hash
+
+                )
+
+            )
+
+            if not is_new:
+
+                return idempotency_record.response_payload
 
             payload = {
 
@@ -154,7 +288,14 @@ class ApproveExpenseCommandHandler:
                 aggregate_id=
                     command.expense_id,
 
-                version=1
+                version=1,
+
+                metadata={
+
+                    "idempotency_key":
+                        command.idempotency_key
+
+                }
 
             )
 
@@ -175,7 +316,7 @@ class ApproveExpenseCommandHandler:
 
             )
 
-            return {
+            response = {
 
                 "success": True,
 
@@ -190,6 +331,16 @@ class ApproveExpenseCommandHandler:
 
             }
 
+            uow.idempotency.complete(
+
+                idempotency_record,
+
+                response
+
+            )
+
+            return response
+
 
 class PayExpenseCommandHandler:
 
@@ -197,6 +348,16 @@ class PayExpenseCommandHandler:
         self,
         command: PayExpenseCommand
     ):
+
+        _require_idempotency_key(
+            command.idempotency_key
+        )
+
+        if not command.merchant_id:
+
+            raise ValueError(
+                "Merchant ID is required."
+            )
 
         if not command.expense_id:
 
@@ -210,7 +371,48 @@ class PayExpenseCommandHandler:
                 "Payment method is required."
             )
 
+        request_hash = calculate_request_hash(
+
+            {
+
+                "merchant_id":
+                    command.merchant_id,
+
+                "expense_id":
+                    command.expense_id,
+
+                "payment_method":
+                    command.payment_method
+
+            }
+
+        )
+
         with UnitOfWork() as uow:
+
+            idempotency_record, is_new = (
+
+                uow.idempotency.start(
+
+                    merchant_id=
+                        command.merchant_id,
+
+                    idempotency_key=
+                        command.idempotency_key,
+
+                    command_name=
+                        "PayExpenseCommand",
+
+                    request_hash=
+                        request_hash
+
+                )
+
+            )
+
+            if not is_new:
+
+                return idempotency_record.response_payload
 
             payload = {
 
@@ -238,7 +440,14 @@ class PayExpenseCommandHandler:
                 aggregate_id=
                     command.expense_id,
 
-                version=1
+                version=1,
+
+                metadata={
+
+                    "idempotency_key":
+                        command.idempotency_key
+
+                }
 
             )
 
@@ -259,7 +468,7 @@ class PayExpenseCommandHandler:
 
             )
 
-            return {
+            response = {
 
                 "success": True,
 
@@ -273,3 +482,13 @@ class PayExpenseCommandHandler:
                     event.event_type
 
             }
+
+            uow.idempotency.complete(
+
+                idempotency_record,
+
+                response
+
+            )
+
+            return response

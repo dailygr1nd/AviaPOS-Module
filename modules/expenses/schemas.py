@@ -4,9 +4,7 @@ from typing import Optional
 
 
 class ExpenseCreateRequest(
-
     BaseModel
-
 ):
 
     merchant_id: str
@@ -23,19 +21,19 @@ class ExpenseCreateRequest(
 
 
 class ExpenseApproveRequest(
-
     BaseModel
-
 ):
+
+    merchant_id: str
 
     expense_id: str
 
 
 class ExpensePayRequest(
-
     BaseModel
-
 ):
+
+    merchant_id: str
 
     expense_id: str
 

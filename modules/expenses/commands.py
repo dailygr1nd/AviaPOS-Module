@@ -24,6 +24,8 @@ class CreateExpenseCommand(
 
     reference: Optional[str] = None
 
+    idempotency_key: Optional[str] = None
+
 
 @dataclass
 class ApproveExpenseCommand(
@@ -33,6 +35,8 @@ class ApproveExpenseCommand(
     merchant_id: str
 
     expense_id: str
+
+    idempotency_key: Optional[str] = None
 
 
 @dataclass
@@ -45,3 +49,5 @@ class PayExpenseCommand(
     expense_id: str
 
     payment_method: str
+
+    idempotency_key: Optional[str] = None

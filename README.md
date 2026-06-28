@@ -160,3 +160,15 @@ events table
 outbox_messages table
     ↓
 commit
+
+
+## Reliability Pattern: Idempotency Keys
+
+All write endpoints must support idempotency.
+
+Flutter and offline-first clients may retry requests when connectivity is unstable.
+
+To prevent duplicate writes, every command request should include:
+
+```text
+Idempotency-Key: <client-generated-unique-key>

@@ -55,3 +55,14 @@ build/
 tmp/
 temp/
 sandbox/
+
+
+# Local API/request test files
+*.http
+*.rest
+
+# Local client retry/idempotency test payloads
+idempotency-test-*.json
+
+# Local migration scratch
+migration_scratch/

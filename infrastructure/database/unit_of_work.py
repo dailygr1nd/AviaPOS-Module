@@ -10,6 +10,10 @@ from infrastructure.outbox.repository import (
     OutboxRepository
 )
 
+from infrastructure.idempotency.repository import (
+    IdempotencyRepository
+)
+
 
 class UnitOfWork:
 
@@ -26,6 +30,8 @@ class UnitOfWork:
 
         self.outbox = None
 
+        self.idempotency = None
+
     def __enter__(self):
 
         self.db = self.session_factory()
@@ -35,6 +41,10 @@ class UnitOfWork:
         )
 
         self.outbox = OutboxRepository(
+            self.db
+        )
+
+        self.idempotency = IdempotencyRepository(
             self.db
         )
 

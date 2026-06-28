@@ -1,9 +1,15 @@
 from fastapi import APIRouter
+from fastapi import Header
 from fastapi import HTTPException
 
 from core.commands.registry import (
     command_bus,
     register_command_handlers
+)
+
+from infrastructure.idempotency.repository import (
+    IdempotencyConflict,
+    IdempotencyInProgress
 )
 
 from modules.expenses.commands import (
@@ -33,9 +39,64 @@ router = APIRouter(
 )
 
 
+def _handle_command_error(
+    exc: Exception
+):
+
+    if isinstance(
+        exc,
+        IdempotencyInProgress
+    ):
+
+        raise HTTPException(
+
+            status_code=409,
+
+            detail=str(
+                exc
+            )
+
+        )
+
+    if isinstance(
+        exc,
+        IdempotencyConflict
+    ):
+
+        raise HTTPException(
+
+            status_code=409,
+
+            detail=str(
+                exc
+            )
+
+        )
+
+    raise HTTPException(
+
+        status_code=400,
+
+        detail=str(
+            exc
+        )
+
+    )
+
+
 @router.post("/")
 def create(
-    request: ExpenseCreateRequest
+
+    request: ExpenseCreateRequest,
+
+    idempotency_key: str | None = Header(
+
+        default=None,
+
+        alias="Idempotency-Key"
+
+    )
+
 ):
 
     register_command_handlers()
@@ -62,28 +123,35 @@ def create(
                     request.amount,
 
                 reference=
-                    request.reference
+                    request.reference,
+
+                idempotency_key=
+                    idempotency_key
 
             )
 
         )
 
-    except ValueError as exc:
+    except Exception as exc:
 
-        raise HTTPException(
-
-            status_code=400,
-
-            detail=str(
-                exc
-            )
-
+        _handle_command_error(
+            exc
         )
 
 
 @router.post("/approve")
 def approve(
-    request: ExpenseApproveRequest
+
+    request: ExpenseApproveRequest,
+
+    idempotency_key: str | None = Header(
+
+        default=None,
+
+        alias="Idempotency-Key"
+
+    )
+
 ):
 
     register_command_handlers()
@@ -95,35 +163,38 @@ def approve(
             ApproveExpenseCommand(
 
                 merchant_id=
-                    getattr(
-                        request,
-                        "merchant_id",
-                        ""
-                    ),
+                    request.merchant_id,
 
                 expense_id=
-                    request.expense_id
+                    request.expense_id,
+
+                idempotency_key=
+                    idempotency_key
 
             )
 
         )
 
-    except ValueError as exc:
+    except Exception as exc:
 
-        raise HTTPException(
-
-            status_code=400,
-
-            detail=str(
-                exc
-            )
-
+        _handle_command_error(
+            exc
         )
 
 
 @router.post("/pay")
 def pay(
-    request: ExpensePayRequest
+
+    request: ExpensePayRequest,
+
+    idempotency_key: str | None = Header(
+
+        default=None,
+
+        alias="Idempotency-Key"
+
+    )
+
 ):
 
     register_command_handlers()
@@ -135,32 +206,25 @@ def pay(
             PayExpenseCommand(
 
                 merchant_id=
-                    getattr(
-                        request,
-                        "merchant_id",
-                        ""
-                    ),
+                    request.merchant_id,
 
                 expense_id=
                     request.expense_id,
 
                 payment_method=
-                    request.payment_method
+                    request.payment_method,
+
+                idempotency_key=
+                    idempotency_key
 
             )
 
         )
 
-    except ValueError as exc:
+    except Exception as exc:
 
-        raise HTTPException(
-
-            status_code=400,
-
-            detail=str(
-                exc
-            )
-
+        _handle_command_error(
+            exc
         )
 
 
