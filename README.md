@@ -256,3 +256,29 @@ Flutter should integrate only with the API surface documented in:
 
 ```text
 docs/api/flutter_contract.md
+
+
+## Payment Command Flow
+
+Payments now use the same hardened write flow as Expenses.
+
+```text
+Payment API
+    ↓
+Payment Command
+    ↓
+Command Bus
+    ↓
+Payment Command Handler
+    ↓
+Unit of Work
+    ↓
+events + outbox + idempotency
+    ↓
+Outbox Publisher
+    ↓
+Redis Streams
+    ↓
+Payment Projector
+    ↓
+payment_projection

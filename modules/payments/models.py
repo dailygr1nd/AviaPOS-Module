@@ -3,7 +3,8 @@ from datetime import datetime
 from sqlalchemy import (
     String,
     Float,
-    DateTime
+    DateTime,
+    BigInteger
 )
 
 from sqlalchemy.orm import (
@@ -45,11 +46,18 @@ class PaymentProjection(Base):
     )
 
     reference_id: Mapped[str] = mapped_column(
-        String(100)
+        String(100),
+        index=True
     )
 
     status: Mapped[str] = mapped_column(
-        String(50)
+        String(50),
+        index=True
+    )
+
+    version: Mapped[int] = mapped_column(
+        BigInteger,
+        default=1
     )
 
     created_at: Mapped[datetime] = mapped_column(

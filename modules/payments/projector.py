@@ -21,6 +21,7 @@ class PaymentProjector(
         self,
         db
     ):
+
         self.db = db
 
     def handle(
@@ -33,7 +34,7 @@ class PaymentProjector(
         ):
 
             self.create(
-                event.payload
+                event
             )
 
         elif event.event_type == (
@@ -41,7 +42,7 @@ class PaymentProjector(
         ):
 
             self.complete(
-                event.payload
+                event
             )
 
         elif event.event_type == (
@@ -49,13 +50,42 @@ class PaymentProjector(
         ):
 
             self.fail(
-                event.payload
+                event
+            )
+
+        elif event.event_type == (
+            "PAYMENT_CANCELLED"
+        ):
+
+            self.cancel(
+                event
             )
 
     def create(
         self,
-        payload
+        event
     ):
+
+        payload = event.payload
+
+        existing = (
+
+            self.db.query(
+                PaymentProjection
+            )
+
+            .filter(
+                PaymentProjection.payment_id
+                == payload["payment_id"]
+            )
+
+            .first()
+
+        )
+
+        if existing:
+
+            return
 
         row = PaymentProjection(
 
@@ -79,47 +109,81 @@ class PaymentProjector(
 
             status="PENDING",
 
+            version=
+                event.version,
+
             created_at=
                 datetime.utcnow()
 
         )
 
-        self.db.add(row)
+        self.db.add(
+            row
+        )
 
         self.db.commit()
 
     def complete(
         self,
-        payload
+        event
     ):
 
-        payment = (
+        self._update_status(
 
-            self.db.query(
-                PaymentProjection
-            )
+            payment_id=
+                event.payload["payment_id"],
 
-            .filter(
-                PaymentProjection.payment_id
-                ==
-                payload["payment_id"]
-            )
+            status="COMPLETED",
 
-            .first()
+            version=
+                event.version
 
         )
-
-        if payment:
-
-            payment.status = (
-                "COMPLETED"
-            )
-
-            self.db.commit()
 
     def fail(
         self,
-        payload
+        event
+    ):
+
+        self._update_status(
+
+            payment_id=
+                event.payload["payment_id"],
+
+            status="FAILED",
+
+            version=
+                event.version
+
+        )
+
+    def cancel(
+        self,
+        event
+    ):
+
+        self._update_status(
+
+            payment_id=
+                event.payload["payment_id"],
+
+            status="CANCELLED",
+
+            version=
+                event.version
+
+        )
+
+    def _update_status(
+
+        self,
+
+        payment_id: str,
+
+        status: str,
+
+        version: int
+
     ):
 
         payment = (
@@ -130,18 +194,19 @@ class PaymentProjector(
 
             .filter(
                 PaymentProjection.payment_id
-                ==
-                payload["payment_id"]
+                == payment_id
             )
 
             .first()
 
         )
 
-        if payment:
+        if not payment:
 
-            payment.status = (
-                "FAILED"
-            )
+            return
 
-            self.db.commit()
+        payment.status = status
+
+        payment.version = version
+
+        self.db.commit()
