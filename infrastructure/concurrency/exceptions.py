@@ -1,0 +1,5 @@
+class OptimisticConcurrencyError(
+    Exception
+):
+
+    pass

@@ -187,7 +187,10 @@ class CreateExpenseCommandHandler:
                     event.event_id,
 
                 "event_type":
-                    event.event_type
+                    event.event_type,
+
+                "version":
+                    event.version
 
             }
 
@@ -225,6 +228,12 @@ class ApproveExpenseCommandHandler:
                 "Expense ID is required."
             )
 
+        if command.expected_version < 1:
+
+            raise ValueError(
+                "Expected version must be at least 1."
+            )
+
         request_hash = calculate_request_hash(
 
             {
@@ -233,7 +242,10 @@ class ApproveExpenseCommandHandler:
                     command.merchant_id,
 
                 "expense_id":
-                    command.expense_id
+                    command.expense_id,
+
+                "expected_version":
+                    command.expected_version
 
             }
 
@@ -265,6 +277,21 @@ class ApproveExpenseCommandHandler:
 
                 return idempotency_record.response_payload
 
+            current_version = uow.events.assert_expected_version(
+
+                merchant_id=
+                    command.merchant_id,
+
+                aggregate_id=
+                    command.expense_id,
+
+                expected_version=
+                    command.expected_version
+
+            )
+
+            next_version = current_version + 1
+
             payload = {
 
                 "expense_id":
@@ -288,12 +315,16 @@ class ApproveExpenseCommandHandler:
                 aggregate_id=
                     command.expense_id,
 
-                version=1,
+                version=
+                    next_version,
 
                 metadata={
 
                     "idempotency_key":
-                        command.idempotency_key
+                        command.idempotency_key,
+
+                    "expected_version":
+                        command.expected_version
 
                 }
 
@@ -327,7 +358,10 @@ class ApproveExpenseCommandHandler:
                     event.event_id,
 
                 "event_type":
-                    event.event_type
+                    event.event_type,
+
+                "version":
+                    event.version
 
             }
 
@@ -371,6 +405,12 @@ class PayExpenseCommandHandler:
                 "Payment method is required."
             )
 
+        if command.expected_version < 1:
+
+            raise ValueError(
+                "Expected version must be at least 1."
+            )
+
         request_hash = calculate_request_hash(
 
             {
@@ -382,7 +422,10 @@ class PayExpenseCommandHandler:
                     command.expense_id,
 
                 "payment_method":
-                    command.payment_method
+                    command.payment_method,
+
+                "expected_version":
+                    command.expected_version
 
             }
 
@@ -414,6 +457,21 @@ class PayExpenseCommandHandler:
 
                 return idempotency_record.response_payload
 
+            current_version = uow.events.assert_expected_version(
+
+                merchant_id=
+                    command.merchant_id,
+
+                aggregate_id=
+                    command.expense_id,
+
+                expected_version=
+                    command.expected_version
+
+            )
+
+            next_version = current_version + 1
+
             payload = {
 
                 "expense_id":
@@ -440,12 +498,16 @@ class PayExpenseCommandHandler:
                 aggregate_id=
                     command.expense_id,
 
-                version=1,
+                version=
+                    next_version,
 
                 metadata={
 
                     "idempotency_key":
-                        command.idempotency_key
+                        command.idempotency_key,
+
+                    "expected_version":
+                        command.expected_version
 
                 }
 
@@ -479,7 +541,10 @@ class PayExpenseCommandHandler:
                     event.event_id,
 
                 "event_type":
-                    event.event_type
+                    event.event_type,
+
+                "version":
+                    event.version
 
             }
 

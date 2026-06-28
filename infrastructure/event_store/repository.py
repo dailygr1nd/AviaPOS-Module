@@ -1,7 +1,13 @@
+from sqlalchemy.exc import IntegrityError
+
 from sqlalchemy.orm import Session
 
 from infrastructure.event_store.models import (
     EventModel
+)
+
+from infrastructure.concurrency.exceptions import (
+    OptimisticConcurrencyError
 )
 
 
@@ -48,9 +54,9 @@ class EventRepository:
             model
         )
 
-        if commit:
+        try:
 
-            try:
+            if commit:
 
                 self.db.commit()
 
@@ -58,15 +64,19 @@ class EventRepository:
                     model
                 )
 
-            except Exception:
+            else:
 
-                self.db.rollback()
+                self.db.flush()
 
-                raise
+        except IntegrityError as exc:
 
-        else:
+            self.db.rollback()
 
-            self.db.flush()
+            raise OptimisticConcurrencyError(
+
+                "Concurrency conflict: aggregate version already exists."
+
+            ) from exc
 
         return model
 
@@ -102,6 +112,81 @@ class EventRepository:
             return "GENESIS"
 
         return latest.current_hash
+
+    def get_latest_version(
+
+        self,
+
+        merchant_id: str,
+
+        aggregate_id: str
+
+    ) -> int:
+
+        latest = (
+
+            self.db.query(
+                EventModel
+            )
+
+            .filter(
+                EventModel.merchant_id
+                == merchant_id,
+
+                EventModel.aggregate_id
+                == aggregate_id
+
+            )
+
+            .order_by(
+                EventModel.version.desc()
+            )
+
+            .first()
+
+        )
+
+        if not latest:
+
+            return 0
+
+        return latest.version
+
+    def assert_expected_version(
+
+        self,
+
+        merchant_id: str,
+
+        aggregate_id: str,
+
+        expected_version: int
+
+    ):
+
+        actual_version = self.get_latest_version(
+
+            merchant_id,
+
+            aggregate_id
+
+        )
+
+        if actual_version != expected_version:
+
+            raise OptimisticConcurrencyError(
+
+                f"Concurrency conflict for aggregate "
+
+                f"{aggregate_id}. Expected version "
+
+                f"{expected_version}, but current version is "
+
+                f"{actual_version}."
+
+            )
+
+        return actual_version
 
     def get_after(
 

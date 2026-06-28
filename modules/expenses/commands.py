@@ -36,6 +36,8 @@ class ApproveExpenseCommand(
 
     expense_id: str
 
+    expected_version: int
+
     idempotency_key: Optional[str] = None
 
 
@@ -49,5 +51,7 @@ class PayExpenseCommand(
     expense_id: str
 
     payment_method: str
+
+    expected_version: int
 
     idempotency_key: Optional[str] = None

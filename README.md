@@ -172,3 +172,15 @@ To prevent duplicate writes, every command request should include:
 
 ```text
 Idempotency-Key: <client-generated-unique-key>
+
+
+## Reliability Pattern: Optimistic Concurrency
+
+AviaPOS uses optimistic concurrency to protect aggregate updates.
+
+Every event has an aggregate version.
+
+For updates to an existing aggregate, the client must send:
+
+```text
+X-Expected-Version: <current-version-known-by-client>

@@ -7,6 +7,10 @@ from core.commands.registry import (
     register_command_handlers
 )
 
+from infrastructure.concurrency.exceptions import (
+    OptimisticConcurrencyError
+)
+
 from infrastructure.idempotency.repository import (
     IdempotencyConflict,
     IdempotencyInProgress
@@ -42,6 +46,21 @@ router = APIRouter(
 def _handle_command_error(
     exc: Exception
 ):
+
+    if isinstance(
+        exc,
+        OptimisticConcurrencyError
+    ):
+
+        raise HTTPException(
+
+            status_code=409,
+
+            detail=str(
+                exc
+            )
+
+        )
 
     if isinstance(
         exc,
@@ -150,11 +169,29 @@ def approve(
 
         alias="Idempotency-Key"
 
+    ),
+
+    expected_version: int | None = Header(
+
+        default=None,
+
+        alias="X-Expected-Version"
+
     )
 
 ):
 
     register_command_handlers()
+
+    if expected_version is None:
+
+        raise HTTPException(
+
+            status_code=428,
+
+            detail="X-Expected-Version header is required."
+
+        )
 
     try:
 
@@ -167,6 +204,9 @@ def approve(
 
                 expense_id=
                     request.expense_id,
+
+                expected_version=
+                    expected_version,
 
                 idempotency_key=
                     idempotency_key
@@ -193,11 +233,29 @@ def pay(
 
         alias="Idempotency-Key"
 
+    ),
+
+    expected_version: int | None = Header(
+
+        default=None,
+
+        alias="X-Expected-Version"
+
     )
 
 ):
 
     register_command_handlers()
+
+    if expected_version is None:
+
+        raise HTTPException(
+
+            status_code=428,
+
+            detail="X-Expected-Version header is required."
+
+        )
 
     try:
 
@@ -213,6 +271,9 @@ def pay(
 
                 payment_method=
                     request.payment_method,
+
+                expected_version=
+                    expected_version,
 
                 idempotency_key=
                     idempotency_key
