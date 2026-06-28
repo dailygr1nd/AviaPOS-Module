@@ -20,6 +20,7 @@ from infrastructure.redis.start_worker import (
     launch_workers
 )
 
+from modules.customers.api import router as customers_router
 from modules.dashboard.api import router as dashboard_router
 from modules.expenses.api import router as expenses_router
 from modules.inventory.api import router as inventory_router
@@ -39,7 +40,7 @@ app = FastAPI(
 
     title="AviaPOS",
 
-    version="0.9.1"
+    version="0.10.0"
 
 )
 
@@ -76,6 +77,10 @@ app.include_router(
 
 app.include_router(
     products_router
+)
+
+app.include_router(
+    customers_router
 )
 
 app.include_router(

@@ -115,6 +115,15 @@ ACTIVE_IMPORTS = [
     "modules.payments.reference_registry",
     "modules.payments.schemas",
 
+
+    "modules.customers.api",
+    "modules.customers.commands",
+    "modules.customers.command_handlers",
+    "modules.customers.models",
+    "modules.customers.projector",
+    "modules.customers.query_service",
+    "modules.customers.schemas",
+
     "modules.receivables.api",
     "modules.receivables.commands",
     "modules.receivables.command_handlers",

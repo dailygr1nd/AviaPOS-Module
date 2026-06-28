@@ -1,35 +1,186 @@
-from core.events.types import EventType
+from datetime import datetime
 
-from modules.customers.projection import customers
+from infrastructure.projections.base_projector import (
+    BaseProjector
+)
+
+from modules.customers.models import (
+    CustomerProjection
+)
 
 
-class CustomerProjector:
+class CustomerProjector(
+    BaseProjector
+):
 
-    @staticmethod
-    def reset():
+    projection_name = "customer_projection"
 
-        customers.clear()
+    def __init__(
+        self,
+        db
+    ):
 
-    @staticmethod
-    def apply(event):
+        self.db = db
 
-        event_type = event["event_type"]
-        payload = event["payload"]
+    def handle(
+        self,
+        event
+    ):
 
-        if event_type == EventType.CUSTOMER_CREATED.value:
+        if event.event_type == "CUSTOMER_CREATED":
 
-            customers[payload["customer_id"]] = {
+            self.create(
+                event
+            )
 
-                "customer_id": payload["customer_id"],
-                "name": payload["name"],
-                "phone": payload.get("phone", "")
+        elif event.event_type == "CUSTOMER_UPDATED":
 
-            }
+            self.update(
+                event
+            )
 
-        elif event_type == EventType.CUSTOMER_UPDATED.value:
+    def create(
+        self,
+        event
+    ):
 
-            customer = customers.get(payload["customer_id"])
+        payload = event.payload
 
-            if customer:
+        existing = (
 
-                customer.update(payload)
+            self.db.query(
+                CustomerProjection
+            )
+
+            .filter(
+                CustomerProjection.customer_id
+                == payload["customer_id"]
+            )
+
+            .first()
+
+        )
+
+        if existing:
+
+            return
+
+        row = CustomerProjection(
+
+            customer_id=
+                payload["customer_id"],
+
+            merchant_id=
+                payload["merchant_id"],
+
+            name=
+                payload["name"],
+
+            phone=
+                payload.get("phone"),
+
+            email=
+                payload.get("email"),
+
+            address=
+                payload.get("address"),
+
+            customer_type=
+                payload.get(
+                    "customer_type",
+                    "REGULAR"
+                ),
+
+            tax_id=
+                payload.get("tax_id"),
+
+            credit_limit=
+                payload.get(
+                    "credit_limit",
+                    0
+                ),
+
+            active=True,
+
+            version=
+                event.version,
+
+            created_at=datetime.utcnow(),
+
+            updated_at=datetime.utcnow()
+
+        )
+
+        self.db.add(
+            row
+        )
+
+        self.db.commit()
+
+    def update(
+        self,
+        event
+    ):
+
+        payload = event.payload
+
+        row = (
+
+            self.db.query(
+                CustomerProjection
+            )
+
+            .filter(
+                CustomerProjection.customer_id
+                == payload["customer_id"],
+
+                CustomerProjection.merchant_id
+                == payload["merchant_id"]
+
+            )
+
+            .first()
+
+        )
+
+        if not row:
+
+            return
+
+        for field in [
+
+            "name",
+
+            "phone",
+
+            "email",
+
+            "address",
+
+            "customer_type",
+
+            "tax_id",
+
+            "credit_limit",
+
+            "active"
+
+        ]:
+
+            if field in payload:
+
+                setattr(
+
+                    row,
+
+                    field,
+
+                    payload[field]
+
+                )
+
+        row.version = event.version
+
+        row.updated_at = datetime.utcnow()
+
+        self.db.commit()

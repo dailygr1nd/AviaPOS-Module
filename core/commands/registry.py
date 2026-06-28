@@ -84,6 +84,18 @@ def register_command_handlers():
         UpdateProductCommandHandler
     )
 
+    from modules.customers.commands import (
+        CreateCustomerCommand,
+        DeactivateCustomerCommand,
+        UpdateCustomerCommand
+    )
+
+    from modules.customers.command_handlers import (
+        CreateCustomerCommandHandler,
+        DeactivateCustomerCommandHandler,
+        UpdateCustomerCommandHandler
+    )
+
     command_bus.register(
 
         CreateExpenseCommand,
@@ -209,6 +221,30 @@ def register_command_handlers():
         DeactivateProductCommand,
 
         DeactivateProductCommandHandler()
+
+    )
+
+    command_bus.register(
+
+        CreateCustomerCommand,
+
+        CreateCustomerCommandHandler()
+
+    )
+
+    command_bus.register(
+
+        UpdateCustomerCommand,
+
+        UpdateCustomerCommandHandler()
+
+    )
+
+    command_bus.register(
+
+        DeactivateCustomerCommand,
+
+        DeactivateCustomerCommandHandler()
 
     )
 

@@ -1,7 +1,7 @@
-from datetime import datetime
+from sqlalchemy import or_
 
-from infrastructure.projections.base_projector import (
-    BaseProjector
+from infrastructure.database.session import (
+    SessionLocal
 )
 
 from modules.products.models import (
@@ -9,128 +9,132 @@ from modules.products.models import (
 )
 
 
-class ProductProjector(
-    BaseProjector
+def _serialize_product(
+    row: ProductProjection
 ):
 
-    projection_name = "product_projection"
+    return {
 
-    def __init__(
-        self,
-        db
-    ):
+        "product_id":
+            row.product_id,
 
-        self.db = db
+        "merchant_id":
+            row.merchant_id,
 
-    def handle(
-        self,
-        event
-    ):
+        "sku":
+            row.sku,
 
-        if event.event_type == "PRODUCT_CREATED":
+        "name":
+            row.name,
 
-            self.create(
-                event
-            )
+        "selling_price":
+            row.selling_price,
 
-        elif event.event_type == "PRODUCT_UPDATED":
+        "cost_price":
+            row.cost_price,
 
-            self.update(
-                event
-            )
+        "category":
+            row.category,
 
-    def create(
-        self,
-        event
-    ):
+        "barcode":
+            row.barcode,
 
-        payload = event.payload
+        "active":
+            row.active,
 
-        existing = (
+        "version":
+            row.version,
 
-            self.db.query(
+        "created_at":
+            row.created_at,
+
+        "updated_at":
+            row.updated_at
+
+    }
+
+
+def get_products(
+
+    merchant_id: str,
+
+    include_inactive: bool = False
+
+):
+
+    db = SessionLocal()
+
+    try:
+
+        query = (
+
+            db.query(
                 ProductProjection
             )
 
             .filter(
-                ProductProjection.product_id
-                == payload["product_id"]
+                ProductProjection.merchant_id
+                == merchant_id
             )
 
-            .first()
+        )
+
+        if not include_inactive:
+
+            query = query.filter(
+                ProductProjection.active
+                == True
+            )
+
+        rows = (
+
+            query.order_by(
+                ProductProjection.name.asc()
+            )
+
+            .all()
 
         )
 
-        if existing:
+        return [
 
-            return
+            _serialize_product(
+                row
+            )
 
-        row = ProductProjection(
+            for row in rows
 
-            product_id=
-                payload["product_id"],
+        ]
 
-            merchant_id=
-                payload["merchant_id"],
+    finally:
 
-            sku=
-                payload["sku"],
+        db.close()
 
-            name=
-                payload["name"],
 
-            selling_price=
-                payload["selling_price"],
+def get_product(
 
-            cost_price=
-                payload["cost_price"],
+    merchant_id: str,
 
-            category=
-                payload.get(
-                    "category"
-                ),
+    product_id: str
 
-            barcode=
-                payload.get(
-                    "barcode"
-                ),
+):
 
-            active=True,
+    db = SessionLocal()
 
-            version=
-                event.version,
-
-            created_at=datetime.utcnow(),
-
-            updated_at=datetime.utcnow()
-
-        )
-
-        self.db.add(
-            row
-        )
-
-        self.db.commit()
-
-    def update(
-        self,
-        event
-    ):
-
-        payload = event.payload
+    try:
 
         row = (
 
-            self.db.query(
+            db.query(
                 ProductProjection
             )
 
             .filter(
-                ProductProjection.product_id
-                == payload["product_id"],
-
                 ProductProjection.merchant_id
-                == payload["merchant_id"]
+                == merchant_id,
+
+                ProductProjection.product_id
+                == product_id
 
             )
 
@@ -140,40 +144,147 @@ class ProductProjector(
 
         if not row:
 
-            return
+            return None
 
-        for field in [
+        return _serialize_product(
+            row
+        )
 
-            "sku",
+    finally:
 
-            "name",
+        db.close()
 
-            "selling_price",
 
-            "cost_price",
+def get_product_by_sku(
 
-            "category",
+    merchant_id: str,
 
-            "barcode",
+    sku: str
 
-            "active"
+):
 
-        ]:
+    db = SessionLocal()
 
-            if field in payload:
+    try:
 
-                setattr(
+        normalized_sku = sku.strip().upper()
 
-                    row,
+        row = (
 
-                    field,
+            db.query(
+                ProductProjection
+            )
 
-                    payload[field]
+            .filter(
+                ProductProjection.merchant_id
+                == merchant_id,
+
+                ProductProjection.sku
+                == normalized_sku
+
+            )
+
+            .first()
+
+        )
+
+        if not row:
+
+            return None
+
+        return _serialize_product(
+            row
+        )
+
+    finally:
+
+        db.close()
+
+
+def search_products(
+
+    merchant_id: str,
+
+    query_text: str,
+
+    include_inactive: bool = False
+
+):
+
+    db = SessionLocal()
+
+    try:
+
+        like_value = f"%{query_text}%"
+
+        query = (
+
+            db.query(
+                ProductProjection
+            )
+
+            .filter(
+                ProductProjection.merchant_id
+                == merchant_id
+            )
+
+            .filter(
+
+                or_(
+
+                    ProductProjection.name.ilike(
+                        like_value
+                    ),
+
+                    ProductProjection.sku.ilike(
+                        like_value
+                    ),
+
+                    ProductProjection.category.ilike(
+                        like_value
+                    ),
+
+                    ProductProjection.barcode.ilike(
+                        like_value
+                    )
 
                 )
 
-        row.version = event.version
+            )
 
-        row.updated_at = datetime.utcnow()
+        )
 
-        self.db.commit()
+        if not include_inactive:
+
+            query = query.filter(
+                ProductProjection.active
+                == True
+            )
+
+        rows = (
+
+            query.order_by(
+                ProductProjection.name.asc()
+            )
+
+            .limit(
+                50
+            )
+
+            .all()
+
+        )
+
+        return [
+
+            _serialize_product(
+                row
+            )
+
+            for row in rows
+
+        ]
+
+    finally:
+
+        db.close()

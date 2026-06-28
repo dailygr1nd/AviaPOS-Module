@@ -16,16 +16,24 @@ from infrastructure.database.session import (
     SessionLocal
 )
 
-from modules.inventory.projector import (
-    InventoryProjector
+from modules.customers.projector import (
+    CustomerProjector
 )
 
 from modules.expenses.projector import (
     ExpenseProjector
 )
 
+from modules.inventory.projector import (
+    InventoryProjector
+)
+
 from modules.payments.projector import (
     PaymentProjector
+)
+
+from modules.products.projector import (
+    ProductProjector
 )
 
 from modules.receivables.projector import (
@@ -34,10 +42,6 @@ from modules.receivables.projector import (
 
 from modules.sales.projector import (
     SalesProjector
-)
-
-from modules.products.projector import (
-    ProductProjector
 )
 
 
@@ -108,6 +112,10 @@ def start_projection_worker():
     projectors = [
 
         ProductProjector(
+            db
+        ),
+
+        CustomerProjector(
             db
         ),
 
