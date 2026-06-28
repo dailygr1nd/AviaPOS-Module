@@ -150,6 +150,16 @@ ACTIVE_IMPORTS = [
     "modules.purchases.schemas",
     "infrastructure.reactions.purchase_reaction_worker",
 
+    "modules.transfers.api",
+    "modules.transfers.commands",
+    "modules.transfers.command_handlers",
+    "modules.transfers.models",
+    "modules.transfers.projector",
+    "modules.transfers.query_service",
+    "modules.transfers.reactions",
+    "modules.transfers.schemas",
+    "infrastructure.reactions.transfer_reaction_worker",
+
 
     "modules.receivables.api",
     "modules.receivables.commands",

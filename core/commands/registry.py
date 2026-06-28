@@ -120,6 +120,28 @@ def register_command_handlers():
         UpdateBranchCommandHandler
     )
 
+    from modules.transfers.commands import (
+    CancelTransferCommand,
+    ConfirmFundsMovementCommand,
+    CreateFundsMovementIntentCommand,
+    CreateStockTransferCommand,
+    DispatchStockTransferCommand,
+    FailFundsMovementCommand,
+    ReceiveStockTransferCommand
+    )
+
+    from modules.transfers.command_handlers import (
+    CancelTransferCommandHandler,
+    ConfirmFundsMovementCommandHandler,
+    CreateFundsMovementIntentCommandHandler,
+    CreateStockTransferCommandHandler,
+    DispatchStockTransferCommandHandler,
+    FailFundsMovementCommandHandler,
+    ReceiveStockTransferCommandHandler
+    )
+
+
+
     from modules.suppliers.commands import (
     CreateSupplierCommand,
     DeactivateSupplierCommand,
@@ -162,6 +184,41 @@ def register_command_handlers():
 
         ApproveExpenseCommandHandler()
 
+    )
+
+    command_bus.register(
+    CreateStockTransferCommand,
+    CreateStockTransferCommandHandler()
+    )
+
+    command_bus.register(
+    DispatchStockTransferCommand,
+    DispatchStockTransferCommandHandler()
+    )
+
+    command_bus.register(
+    ReceiveStockTransferCommand,
+    ReceiveStockTransferCommandHandler()
+    )
+
+    command_bus.register(
+    CancelTransferCommand,
+    CancelTransferCommandHandler()
+    )
+
+    command_bus.register(
+    CreateFundsMovementIntentCommand,
+    CreateFundsMovementIntentCommandHandler()
+    )
+
+    command_bus.register(
+    ConfirmFundsMovementCommand,
+    ConfirmFundsMovementCommandHandler()
+    )
+
+    command_bus.register(
+    FailFundsMovementCommand,
+    FailFundsMovementCommandHandler()
     )
 
     command_bus.register(
