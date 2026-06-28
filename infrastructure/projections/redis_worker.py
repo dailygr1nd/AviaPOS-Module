@@ -2,18 +2,22 @@ import json
 
 from types import SimpleNamespace
 
+from infrastructure.database.session import (
+    SessionLocal
+)
+
 from infrastructure.redis.client import (
     redis_client
 )
 
 from infrastructure.redis.consumer import (
-    GROUP_NAME,
     CONSUMER_NAME,
-    EVENT_STREAM
+    EVENT_STREAM,
+    GROUP_NAME
 )
 
-from infrastructure.database.session import (
-    SessionLocal
+from modules.branches.projector import (
+    BranchProjector
 )
 
 from modules.customers.projector import (
@@ -44,7 +48,6 @@ from modules.sales.projector import (
     SalesProjector
 )
 
-from modules.branches.projector import BranchProjector
 
 def _build_event(
     data: dict
@@ -52,76 +55,60 @@ def _build_event(
 
     return SimpleNamespace(
 
-        persisted_event_id=
+        persisted_event_id=data.get(
+            "persisted_event_id"
+        ),
+
+        event_id=data.get(
+            "event_id"
+        ),
+
+        event_type=data.get(
+            "event_type"
+        ),
+
+        merchant_id=data.get(
+            "merchant_id"
+        ),
+
+        aggregate_id=data.get(
+            "aggregate_id"
+        ),
+
+        version=int(
             data.get(
-                "persisted_event_id"
-            ),
-
-        event_id=
-            data.get(
-                "event_id"
-            ),
-
-        event_type=
-            data.get(
-                "event_type"
-            ),
-
-        merchant_id=
-            data.get(
-                "merchant_id"
-            ),
-
-        aggregate_id=
-            data.get(
-                "aggregate_id"
-            ),
-
-        version=
-            int(
-                data.get(
-                    "version",
-                    1
-                )
-            ),
-
-        previous_hash=
-            data.get(
-                "previous_hash"
-            ),
-
-        current_hash=
-            data.get(
-                "current_hash"
-            ),
-
-        payload=
-            json.loads(
-                data.get(
-                    "payload",
-                    "{}"
-                )
+                "version",
+                1
             )
+        ),
+
+        previous_hash=data.get(
+            "previous_hash"
+        ),
+
+        current_hash=data.get(
+            "current_hash"
+        ),
+
+        payload=json.loads(
+            data.get(
+                "payload",
+                "{}"
+            )
+        )
 
     )
 
 
-def start_projection_worker():
+def _build_projectors(
+    db
+):
 
-    db = SessionLocal()
+    return [
 
-    projectors = [
-
-        projectors = [
-        BranchProjector(db),
-        ProductProjector(db),
-        CustomerProjector(db),
-        InventoryProjector(db),
-        ExpenseProjector(db),
-        PaymentProjector(db),
-        ReceivableProjector(db),
-        SalesProjector(db)
-    ]
+        BranchProjector(
+            db
+        ),
 
         ProductProjector(
             db
@@ -152,6 +139,15 @@ def start_projection_worker():
         )
 
     ]
+
+
+def start_projection_worker():
+
+    db = SessionLocal()
+
+    projectors = _build_projectors(
+        db
+    )
 
     while True:
 
