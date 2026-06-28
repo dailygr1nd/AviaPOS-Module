@@ -97,6 +97,14 @@ ACTIVE_IMPORTS = [
     "modules.expenses.query_service",
     "modules.expenses.schemas",
 
+    "modules.products.api",
+    "modules.products.commands",
+    "modules.products.command_handlers",
+    "modules.products.models",
+    "modules.products.projector",
+    "modules.products.query_service",
+    "modules.products.schemas",
+
     "modules.payments.api",
     "modules.payments.commands",
     "modules.payments.command_handlers",

@@ -24,6 +24,7 @@ from modules.dashboard.api import router as dashboard_router
 from modules.expenses.api import router as expenses_router
 from modules.inventory.api import router as inventory_router
 from modules.payments.api import router as payments_router
+from modules.products.api import router as products_router
 from modules.receivables.api import router as receivables_router
 from modules.sales.api import router as sales_router
 from modules.sync.api import router as sync_router
@@ -38,7 +39,7 @@ app = FastAPI(
 
     title="AviaPOS",
 
-    version="0.8.1"
+    version="0.9.1"
 
 )
 
@@ -71,6 +72,10 @@ app.include_router(
 
 app.include_router(
     dashboard_router
+)
+
+app.include_router(
+    products_router
 )
 
 app.include_router(

@@ -36,6 +36,10 @@ from modules.sales.projector import (
     SalesProjector
 )
 
+from modules.products.projector import (
+    ProductProjector
+)
+
 
 def _build_event(
     data: dict
@@ -102,6 +106,10 @@ def start_projection_worker():
     db = SessionLocal()
 
     projectors = [
+
+        ProductProjector(
+            db
+        ),
 
         InventoryProjector(
             db

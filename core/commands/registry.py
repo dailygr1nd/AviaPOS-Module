@@ -72,6 +72,18 @@ def register_command_handlers():
         CreateSaleCommandHandler
     )
 
+    from modules.products.commands import (
+        CreateProductCommand,
+        DeactivateProductCommand,
+        UpdateProductCommand
+    )
+
+    from modules.products.command_handlers import (
+        CreateProductCommandHandler,
+        DeactivateProductCommandHandler,
+        UpdateProductCommandHandler
+    )
+
     command_bus.register(
 
         CreateExpenseCommand,
@@ -173,6 +185,30 @@ def register_command_handlers():
         CreateSaleCommand,
 
         CreateSaleCommandHandler()
+
+    )
+
+    command_bus.register(
+
+        CreateProductCommand,
+
+        CreateProductCommandHandler()
+
+    )
+
+    command_bus.register(
+
+        UpdateProductCommand,
+
+        UpdateProductCommandHandler()
+
+    )
+
+    command_bus.register(
+
+        DeactivateProductCommand,
+
+        DeactivateProductCommandHandler()
 
     )
 
