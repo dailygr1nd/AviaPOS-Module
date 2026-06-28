@@ -1023,6 +1023,108 @@ GET /suppliers/{merchant_id}/{supplier_id}
 }
 
 
+# Purchases
+
+Purchases are merchant-scoped and branch-scoped procurement records.
+
+Purchases depend on:
+
+```text
+Branches
+Products
+Suppliers
+Inventory
+
+# Purchases
+
+Purchases are merchant-scoped and branch-scoped procurement records.
+
+Purchases depend on:
+
+```text
+Branches
+Products
+Suppliers
+Inventory
+
+POST /purchases
+
+Authorization: Bearer <token>
+Idempotency-Key: M001-POS01-PUR-000001
+
+{
+  "merchant_id": "M001",
+  "branch_id": "B001",
+  "supplier_id": "SUP001",
+  "supplier_invoice_ref": "INV-1001",
+  "notes": "Restock drinks",
+  "items": [
+    {
+      "product_id": "P001",
+      "sku": "SODA-500ML",
+      "quantity": 100,
+      "unit_cost": 60
+    }
+  ]
+}
+
+{
+  "success": true,
+  "purchase_id": "...",
+  "event_id": "...",
+  "event_type": "PURCHASE_CREATED",
+  "version": 1,
+  "total": 6000
+}
+
+POST /purchases/receive
+
+Authorization: Bearer <token>
+Idempotency-Key: M001-POS01-PUR-000002
+X-Expected-Version: 1
+
+{
+  "merchant_id": "M001",
+  "purchase_id": "...",
+  "received_by_user_id": "...",
+  "items": [
+    {
+      "product_id": "P001",
+      "sku": "SODA-500ML",
+      "quantity": 100,
+      "cost_price": 60,
+      "inventory_expected_version": 0
+    }
+  ]
+}
+inventory_expected_version comes from the current inventory row for: 
+merchant_id + branch_id + product_id
+Use 0 if the product has never existed in that branch inventory before.
+
+POST /purchases/cancel
+Authorization: Bearer <token>
+Idempotency-Key: M001-POS01-PUR-000003
+X-Expected-Version: 1
+
+{
+  "merchant_id": "M001",
+  "purchase_id": "...",
+  "reason": "Wrong supplier invoice"
+}
+
+GET /purchases/{merchant_id}
+?status=CREATED
+?status=RECEIVED
+?status=CANCELLED
+
+GET /purchases/{merchant_id}/branch/{branch_id} 
+
+GET /purchases/{merchant_id}/supplier/{supplier_id}
+
+GET /purchases/{merchant_id}/{purchase_id}
+
+
+
 # Inventory
 
 Inventory is scoped by:

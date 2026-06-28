@@ -48,6 +48,8 @@ from modules.sales.projector import (
     SalesProjector
 )
 
+from modules.purchases.projector import PurchaseProjector
+
 from modules.suppliers.projector import SupplierProjector
 
 def _build_event(
@@ -120,6 +122,10 @@ def _build_projectors(
         ),
 
         SupplierProjector(
+            db
+        ),
+
+        PurchaseProjector(
             db
         ),
 

@@ -34,6 +34,18 @@ def register_command_handlers():
         CreatePaymentCommand,
         FailPaymentCommand
     )
+    
+    from modules.purchases.commands import (
+    CancelPurchaseCommand,
+    CreatePurchaseCommand,
+    ReceivePurchaseCommand
+    )
+
+    from modules.purchases.command_handlers import (
+    CancelPurchaseCommandHandler,
+    CreatePurchaseCommandHandler,
+    ReceivePurchaseCommandHandler
+    )
 
     from modules.payments.command_handlers import (
         CancelPaymentCommandHandler,
@@ -174,6 +186,22 @@ def register_command_handlers():
         PayExpenseCommandHandler()
 
     )
+
+    command_bus.register(
+    CreatePurchaseCommand,
+    CreatePurchaseCommandHandler()
+    )
+
+    command_bus.register(
+    ReceivePurchaseCommand,
+    ReceivePurchaseCommandHandler()
+    )
+
+    command_bus.register(
+    CancelPurchaseCommand,
+    CancelPurchaseCommandHandler()
+    )
+
 
     command_bus.register(
 
