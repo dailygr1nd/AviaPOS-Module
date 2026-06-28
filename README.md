@@ -249,3 +249,10 @@ Flutter authenticates using:
 
 ```text
 POST /auth/login
+
+## Flutter API Contract
+
+Flutter should integrate only with the API surface documented in:
+
+```text
+docs/api/flutter_contract.md

@@ -4,6 +4,10 @@ from core.commands.registry import (
     register_command_handlers
 )
 
+from infrastructure.outbox.bootstrap import (
+    launch_outbox_worker
+)
+
 from infrastructure.redis.bootstrap import (
     bootstrap_redis
 )
@@ -12,36 +16,31 @@ from infrastructure.redis.start_worker import (
     launch_workers
 )
 
-from infrastructure.outbox.bootstrap import (
-    launch_outbox_worker
-)
-
-from modules.sales.api import router as sales_router
-from modules.inventory.api import router as inventory_router
-from modules.customers.api import router as customers_router
-from modules.debts.api import router as debts_router
-from modules.products.api import router as products_router
-from modules.suppliers.api import router as suppliers_router
 from modules.branches.api import router as branches_router
-from modules.purchases.api import router as purchases_router
-from modules.transfers.api import router as transfers_router
+from modules.customers.api import router as customers_router
 from modules.expenses.api import router as expenses_router
+from modules.inventory.api import router as inventory_router
 from modules.payments.api import router as payments_router
+from modules.products.api import router as products_router
+from modules.purchases.api import router as purchases_router
 from modules.receivables.api import router as receivables_router
+from modules.sales.api import router as sales_router
+from modules.suppliers.api import router as suppliers_router
 from modules.sync.api import router as sync_router
+from modules.transfers.api import router as transfers_router
 from modules.users.api import router as auth_router
 
 from modules.control_center.api import router as control_router
-from modules.control_center.api_trace import router as trace_router
 from modules.control_center.api_debug import router as debug_router
 from modules.control_center.api_integrity import router as integrity_router
+from modules.control_center.api_trace import router as trace_router
 
 
 app = FastAPI(
 
     title="AviaPOS",
 
-    version="0.5.0"
+    version="0.6.0"
 
 )
 
@@ -83,33 +82,27 @@ app.include_router(
 )
 
 app.include_router(
-    customers_router,
-    prefix="/customers",
-    tags=["Customers"]
-)
-
-app.include_router(
-    debts_router,
-    prefix="/debts",
-    tags=["Debts"]
-)
-
-app.include_router(
     products_router,
     prefix="/products",
     tags=["Products"]
 )
 
 app.include_router(
-    suppliers_router,
-    prefix="/suppliers",
-    tags=["Suppliers"]
+    customers_router,
+    prefix="/customers",
+    tags=["Customers"]
 )
 
 app.include_router(
     branches_router,
     prefix="/branches",
     tags=["Branches"]
+)
+
+app.include_router(
+    suppliers_router,
+    prefix="/suppliers",
+    tags=["Suppliers"]
 )
 
 app.include_router(

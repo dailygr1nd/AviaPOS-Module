@@ -1,6 +1,13 @@
 from fastapi import APIRouter
+from fastapi import Depends
 from fastapi import HTTPException
 from fastapi import Query
+
+from api.auth.dependencies import (
+    AuthenticatedUser,
+    get_current_user,
+    require_merchant_scope
+)
 
 from infrastructure.database.session import (
     SessionLocal
@@ -27,8 +34,19 @@ router = APIRouter(
 
 @router.post("/devices/register")
 def register_device(
-    request: RegisterDeviceRequest
+
+    request: RegisterDeviceRequest,
+
+    current_user: AuthenticatedUser = Depends(
+        get_current_user
+    )
+
 ):
+
+    require_merchant_scope(
+        request.merchant_id,
+        current_user
+    )
 
     db = SessionLocal()
 
@@ -40,52 +58,37 @@ def register_device(
 
         device = repo.register_device(
 
-            merchant_id=
-                request.merchant_id,
+            merchant_id=request.merchant_id,
 
-            device_id=
-                request.device_id,
+            device_id=request.device_id,
 
-            branch_id=
-                request.branch_id,
+            branch_id=request.branch_id,
 
-            user_id=
-                request.user_id,
+            user_id=current_user.user_id,
 
-            device_name=
-                request.device_name,
+            device_name=request.device_name,
 
-            platform=
-                request.platform
+            platform=request.platform
 
         )
 
         return {
 
-            "success":
-                True,
+            "success": True,
 
-            "merchant_id":
-                device.merchant_id,
+            "merchant_id": device.merchant_id,
 
-            "device_id":
-                device.device_id,
+            "device_id": device.device_id,
 
-            "status":
-                device.status
+            "status": device.status
 
         }
 
     except Exception as exc:
 
         raise HTTPException(
-
             status_code=400,
-
-            detail=str(
-                exc
-            )
-
+            detail=str(exc)
         )
 
     finally:
@@ -95,8 +98,19 @@ def register_device(
 
 @router.post("/push")
 def push_events(
-    request: PushSyncRequest
+
+    request: PushSyncRequest,
+
+    current_user: AuthenticatedUser = Depends(
+        get_current_user
+    )
+
 ):
+
+    require_merchant_scope(
+        request.merchant_id,
+        current_user
+    )
 
     db = SessionLocal()
 
@@ -120,32 +134,23 @@ def push_events(
 
             record, duplicate = repo.record_client_event(
 
-                merchant_id=
-                    request.merchant_id,
+                merchant_id=request.merchant_id,
 
-                device_id=
-                    request.device_id,
+                device_id=request.device_id,
 
-                branch_id=
-                    request.branch_id,
+                branch_id=request.branch_id,
 
-                client_event_id=
-                    item.client_event_id,
+                client_event_id=item.client_event_id,
 
-                idempotency_key=
-                    item.idempotency_key,
+                idempotency_key=item.idempotency_key,
 
-                command_name=
-                    item.command_name,
+                command_name=item.command_name,
 
-                payload=
-                    item.payload,
+                payload=item.payload,
 
-                expected_version=
-                    item.expected_version,
+                expected_version=item.expected_version,
 
-                occurred_at=
-                    item.occurred_at
+                occurred_at=item.occurred_at
 
             )
 
@@ -153,21 +158,13 @@ def push_events(
 
                 {
 
-                    "client_event_id":
-                        item.client_event_id,
+                    "client_event_id": item.client_event_id,
 
-                    "status":
-                        "DUPLICATE"
-                        if duplicate
-                        else "RECEIVED",
+                    "status": "DUPLICATE" if duplicate else "RECEIVED",
 
-                    "server_sync_id":
-                        record.id
-                        if record
-                        else None,
+                    "server_sync_id": record.id if record else None,
 
-                    "error":
-                        None
+                    "error": None
 
                 }
 
@@ -175,29 +172,19 @@ def push_events(
 
         return {
 
-            "success":
-                True,
+            "success": True,
 
-            "accepted":
-                len(
-                    results
-                ),
+            "accepted": len(results),
 
-            "results":
-                results
+            "results": results
 
         }
 
     except Exception as exc:
 
         raise HTTPException(
-
             status_code=400,
-
-            detail=str(
-                exc
-            )
-
+            detail=str(exc)
         )
 
     finally:
@@ -219,9 +206,18 @@ def pull_events(
         default=100,
         ge=1,
         le=500
+    ),
+
+    current_user: AuthenticatedUser = Depends(
+        get_current_user
     )
 
 ):
+
+    require_merchant_scope(
+        merchant_id,
+        current_user
+    )
 
     db = SessionLocal()
 
@@ -233,83 +229,59 @@ def pull_events(
 
         events = repo.pull_server_events(
 
-            merchant_id=
-                merchant_id,
+            merchant_id=merchant_id,
 
-            after_event_id=
-                after_event_id,
+            after_event_id=after_event_id,
 
-            limit=
-                limit
+            limit=limit
 
         )
 
         return {
 
-            "merchant_id":
-                merchant_id,
+            "merchant_id": merchant_id,
 
-            "after_event_id":
-                after_event_id,
+            "after_event_id": after_event_id,
 
-            "count":
-                len(
-                    events
-                ),
+            "count": len(events),
 
-            "events":
-                [
+            "events": [
 
-                    {
+                {
 
-                        "id":
-                            event.id,
+                    "id": event.id,
 
-                        "event_id":
-                            event.event_id,
+                    "event_id": event.event_id,
 
-                        "event_type":
-                            event.event_type,
+                    "event_type": event.event_type,
 
-                        "merchant_id":
-                            event.merchant_id,
+                    "merchant_id": event.merchant_id,
 
-                        "aggregate_id":
-                            event.aggregate_id,
+                    "aggregate_id": event.aggregate_id,
 
-                        "version":
-                            event.version,
+                    "version": event.version,
 
-                        "payload":
-                            event.payload,
+                    "payload": event.payload,
 
-                        "previous_hash":
-                            event.previous_hash,
+                    "previous_hash": event.previous_hash,
 
-                        "current_hash":
-                            event.current_hash,
+                    "current_hash": event.current_hash,
 
-                        "created_at":
-                            event.created_at
+                    "created_at": event.created_at
 
-                    }
+                }
 
-                    for event in events
+                for event in events
 
-                ]
+            ]
 
         }
 
     except Exception as exc:
 
         raise HTTPException(
-
             status_code=400,
-
-            detail=str(
-                exc
-            )
-
+            detail=str(exc)
         )
 
     finally:
@@ -322,9 +294,18 @@ def sync_status(
 
     merchant_id: str,
 
-    device_id: str
+    device_id: str,
+
+    current_user: AuthenticatedUser = Depends(
+        get_current_user
+    )
 
 ):
+
+    require_merchant_scope(
+        merchant_id,
+        current_user
+    )
 
     db = SessionLocal()
 
@@ -345,13 +326,8 @@ def sync_status(
     except Exception as exc:
 
         raise HTTPException(
-
             status_code=400,
-
-            detail=str(
-                exc
-            )
-
+            detail=str(exc)
         )
 
     finally:

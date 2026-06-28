@@ -1,6 +1,13 @@
 from fastapi import APIRouter
+from fastapi import Depends
 from fastapi import Header
 from fastapi import HTTPException
+
+from api.auth.dependencies import (
+    AuthenticatedUser,
+    get_current_user,
+    require_merchant_scope
+)
 
 from core.commands.registry import (
     command_bus,
@@ -53,13 +60,8 @@ def _handle_command_error(
     ):
 
         raise HTTPException(
-
             status_code=409,
-
-            detail=str(
-                exc
-            )
-
+            detail=str(exc)
         )
 
     if isinstance(
@@ -68,13 +70,8 @@ def _handle_command_error(
     ):
 
         raise HTTPException(
-
             status_code=409,
-
-            detail=str(
-                exc
-            )
-
+            detail=str(exc)
         )
 
     if isinstance(
@@ -83,23 +80,13 @@ def _handle_command_error(
     ):
 
         raise HTTPException(
-
             status_code=409,
-
-            detail=str(
-                exc
-            )
-
+            detail=str(exc)
         )
 
     raise HTTPException(
-
         status_code=400,
-
-        detail=str(
-            exc
-        )
-
+        detail=str(exc)
     )
 
 
@@ -109,14 +96,20 @@ def create(
     request: ExpenseCreateRequest,
 
     idempotency_key: str | None = Header(
-
         default=None,
-
         alias="Idempotency-Key"
+    ),
 
+    current_user: AuthenticatedUser = Depends(
+        get_current_user
     )
 
 ):
+
+    require_merchant_scope(
+        request.merchant_id,
+        current_user
+    )
 
     register_command_handlers()
 
@@ -126,26 +119,19 @@ def create(
 
             CreateExpenseCommand(
 
-                merchant_id=
-                    request.merchant_id,
+                merchant_id=request.merchant_id,
 
-                branch_id=
-                    request.branch_id,
+                branch_id=request.branch_id,
 
-                category=
-                    request.category,
+                category=request.category,
 
-                description=
-                    request.description,
+                description=request.description,
 
-                amount=
-                    request.amount,
+                amount=request.amount,
 
-                reference=
-                    request.reference,
+                reference=request.reference,
 
-                idempotency_key=
-                    idempotency_key
+                idempotency_key=idempotency_key
 
             )
 
@@ -153,9 +139,7 @@ def create(
 
     except Exception as exc:
 
-        _handle_command_error(
-            exc
-        )
+        _handle_command_error(exc)
 
 
 @router.post("/approve")
@@ -164,33 +148,33 @@ def approve(
     request: ExpenseApproveRequest,
 
     idempotency_key: str | None = Header(
-
         default=None,
-
         alias="Idempotency-Key"
-
     ),
 
     expected_version: int | None = Header(
-
         default=None,
-
         alias="X-Expected-Version"
+    ),
 
+    current_user: AuthenticatedUser = Depends(
+        get_current_user
     )
 
 ):
+
+    require_merchant_scope(
+        request.merchant_id,
+        current_user
+    )
 
     register_command_handlers()
 
     if expected_version is None:
 
         raise HTTPException(
-
             status_code=428,
-
             detail="X-Expected-Version header is required."
-
         )
 
     try:
@@ -199,17 +183,13 @@ def approve(
 
             ApproveExpenseCommand(
 
-                merchant_id=
-                    request.merchant_id,
+                merchant_id=request.merchant_id,
 
-                expense_id=
-                    request.expense_id,
+                expense_id=request.expense_id,
 
-                expected_version=
-                    expected_version,
+                expected_version=expected_version,
 
-                idempotency_key=
-                    idempotency_key
+                idempotency_key=idempotency_key
 
             )
 
@@ -217,9 +197,7 @@ def approve(
 
     except Exception as exc:
 
-        _handle_command_error(
-            exc
-        )
+        _handle_command_error(exc)
 
 
 @router.post("/pay")
@@ -228,33 +206,33 @@ def pay(
     request: ExpensePayRequest,
 
     idempotency_key: str | None = Header(
-
         default=None,
-
         alias="Idempotency-Key"
-
     ),
 
     expected_version: int | None = Header(
-
         default=None,
-
         alias="X-Expected-Version"
+    ),
 
+    current_user: AuthenticatedUser = Depends(
+        get_current_user
     )
 
 ):
+
+    require_merchant_scope(
+        request.merchant_id,
+        current_user
+    )
 
     register_command_handlers()
 
     if expected_version is None:
 
         raise HTTPException(
-
             status_code=428,
-
             detail="X-Expected-Version header is required."
-
         )
 
     try:
@@ -263,20 +241,15 @@ def pay(
 
             PayExpenseCommand(
 
-                merchant_id=
-                    request.merchant_id,
+                merchant_id=request.merchant_id,
 
-                expense_id=
-                    request.expense_id,
+                expense_id=request.expense_id,
 
-                payment_method=
-                    request.payment_method,
+                payment_method=request.payment_method,
 
-                expected_version=
-                    expected_version,
+                expected_version=expected_version,
 
-                idempotency_key=
-                    idempotency_key
+                idempotency_key=idempotency_key
 
             )
 
@@ -284,26 +257,46 @@ def pay(
 
     except Exception as exc:
 
-        _handle_command_error(
-            exc
-        )
-
-
-@router.get("/{merchant_id}")
-def list_expenses(
-    merchant_id: str
-):
-
-    return get_expenses(
-        merchant_id
-    )
+        _handle_command_error(exc)
 
 
 @router.get("/summary/{merchant_id}")
 def summary(
-    merchant_id: str
+
+    merchant_id: str,
+
+    current_user: AuthenticatedUser = Depends(
+        get_current_user
+    )
+
 ):
 
+    require_merchant_scope(
+        merchant_id,
+        current_user
+    )
+
     return get_expense_summary(
+        merchant_id
+    )
+
+
+@router.get("/{merchant_id}")
+def list_expenses(
+
+    merchant_id: str,
+
+    current_user: AuthenticatedUser = Depends(
+        get_current_user
+    )
+
+):
+
+    require_merchant_scope(
+        merchant_id,
+        current_user
+    )
+
+    return get_expenses(
         merchant_id
     )

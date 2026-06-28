@@ -79,3 +79,9 @@ offline-queue-*.json
 *.key
 auth-test-*.json
 jwt-test-*.txt
+
+
+# API contract scratch
+api-test-*.json
+openapi-snapshot*.json
+swagger-export*.json
