@@ -1,8 +1,8 @@
 from infrastructure.redis.consumer import (
-    create_group
+    create_groups
 )
 
 
 def bootstrap_redis():
 
-    create_group()
+    create_groups()

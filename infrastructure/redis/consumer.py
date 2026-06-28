@@ -11,8 +11,14 @@ GROUP_NAME = "projection_workers"
 
 CONSUMER_NAME = "worker_1"
 
+REACTION_GROUP_NAME = "sales_reaction_workers"
 
-def create_group():
+REACTION_CONSUMER_NAME = "sales_reaction_worker_1"
+
+
+def _create_group(
+    group_name: str
+):
 
     try:
 
@@ -20,7 +26,7 @@ def create_group():
 
             EVENT_STREAM,
 
-            GROUP_NAME,
+            group_name,
 
             id="0",
 
@@ -31,3 +37,31 @@ def create_group():
     except Exception:
 
         pass
+
+
+def create_group():
+
+    _create_group(
+        GROUP_NAME
+    )
+
+
+def create_projection_group():
+
+    _create_group(
+        GROUP_NAME
+    )
+
+
+def create_reaction_group():
+
+    _create_group(
+        REACTION_GROUP_NAME
+    )
+
+
+def create_groups():
+
+    create_projection_group()
+
+    create_reaction_group()

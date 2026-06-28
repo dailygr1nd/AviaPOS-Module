@@ -8,6 +8,10 @@ from infrastructure.outbox.bootstrap import (
     launch_outbox_worker
 )
 
+from infrastructure.reactions.bootstrap import (
+    launch_reaction_workers
+)
+
 from infrastructure.redis.bootstrap import (
     bootstrap_redis
 )
@@ -40,7 +44,7 @@ app = FastAPI(
 
     title="AviaPOS",
 
-    version="0.6.0"
+    version="0.7.0"
 
 )
 
@@ -57,6 +61,8 @@ def startup():
         launch_workers()
 
         launch_outbox_worker()
+
+        launch_reaction_workers()
 
     except Exception as exc:
 

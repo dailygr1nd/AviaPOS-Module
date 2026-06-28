@@ -114,6 +114,12 @@ class CreateSaleCommandHandler:
                     "Sale item unit price must be positive."
                 )
 
+            if item.inventory_expected_version < 1:
+
+                raise ValueError(
+                    "Sale item inventory_expected_version must be at least 1."
+                )
+
             line_total = _line_total(
 
                 item.quantity,
@@ -377,7 +383,10 @@ class CreateSaleCommandHandler:
                     command.payment_method,
 
                 "customer_id":
-                    command.customer_id
+                    command.customer_id,
+
+                "items":
+                    normalized_items
 
             }
 

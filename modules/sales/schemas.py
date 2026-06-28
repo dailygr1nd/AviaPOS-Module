@@ -1,39 +1,60 @@
-from dataclasses import dataclass
-
+from typing import List
 from typing import Optional
 
-from core.commands.command import (
-    Command
-)
+from pydantic import BaseModel
+from pydantic import Field
 
 
-@dataclass
-class SaleLineCommand:
+class SaleItem(
+    BaseModel
+):
 
     product_id: str
 
     sku: str
 
-    quantity: int
+    quantity: int = Field(
+        gt=0
+    )
 
-    unit_price: float
+    unit_price: float = Field(
+        gt=0
+    )
 
-    inventory_expected_version: Optional[int] = None
+    inventory_expected_version: int = Field(
+        ge=1
+    )
 
 
-@dataclass
-class CreateSaleCommand(
-    Command
+class CreateSaleRequest(
+    BaseModel
 ):
 
     merchant_id: str
 
     branch_id: str
 
-    items: list[SaleLineCommand]
+    items: List[SaleItem]
 
     payment_method: str
 
     customer_id: Optional[str] = None
 
-    idempotency_key: Optional[str] = None
+
+class CreateSaleResponse(
+    BaseModel
+):
+
+    success: bool
+
+    sale_id: str
+
+    total: float
+
+    payment_method: str
+
+    event_id: str
+
+    event_type: str
+
+    version: int

@@ -18,7 +18,7 @@ class SaleLineCommand:
 
     unit_price: float
 
-    inventory_expected_version: Optional[int] = None
+    inventory_expected_version: int
 
 
 @dataclass

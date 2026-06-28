@@ -366,3 +366,12 @@ Redis Streams
 Sales Projector
     ↓
 sale_projection
+
+## Sales Reactions
+
+Sales are now operational through event-driven reactions.
+
+When a sale is completed, AviaPOS emits:
+
+```text
+SALE_COMPLETED
