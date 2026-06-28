@@ -108,6 +108,19 @@ def register_command_handlers():
         UpdateBranchCommandHandler
     )
 
+    from modules.suppliers.commands import (
+    CreateSupplierCommand,
+    DeactivateSupplierCommand,
+    UpdateSupplierCommand
+    )
+
+    from modules.suppliers.command_handlers import (
+    CreateSupplierCommandHandler,
+    DeactivateSupplierCommandHandler,
+    UpdateSupplierCommandHandler
+    )
+
+
     command_bus.register(
 
         CreateExpenseCommand,
@@ -115,6 +128,21 @@ def register_command_handlers():
         CreateExpenseCommandHandler()
 
     )
+    command_bus.register(
+    CreateSupplierCommand,
+    CreateSupplierCommandHandler()
+    )
+
+    command_bus.register(
+    UpdateSupplierCommand,
+    UpdateSupplierCommandHandler()
+    )
+
+    command_bus.register(
+    DeactivateSupplierCommand,
+    DeactivateSupplierCommandHandler()
+    )
+
 
     command_bus.register(
 

@@ -132,6 +132,14 @@ ACTIVE_IMPORTS = [
     "modules.customers.query_service",
     "modules.customers.schemas",
 
+    "modules.suppliers.api",
+    "modules.suppliers.commands",
+    "modules.suppliers.command_handlers",
+    "modules.suppliers.models",
+    "modules.suppliers.projector",
+    "modules.suppliers.query_service",
+    "modules.suppliers.schemas",
+
     "modules.receivables.api",
     "modules.receivables.commands",
     "modules.receivables.command_handlers",

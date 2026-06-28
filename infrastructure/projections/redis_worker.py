@@ -48,6 +48,7 @@ from modules.sales.projector import (
     SalesProjector
 )
 
+from modules.suppliers.projector import SupplierProjector
 
 def _build_event(
     data: dict
@@ -115,6 +116,10 @@ def _build_projectors(
         ),
 
         CustomerProjector(
+            db
+        ),
+
+        SupplierProjector(
             db
         ),
 

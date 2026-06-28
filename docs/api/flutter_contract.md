@@ -938,8 +938,90 @@ Authorization: Bearer <token>
   "updated_at": "..."
 }
 ```
+# Suppliers
+
+Suppliers are merchant-scoped reference data used by Purchases.
+
+Supplier responses include `version`.
+
+Flutter must use this `version` as `X-Expected-Version` when updating or deactivating suppliers.
 
 ---
+
+## Create Supplier
+
+```text
+POST /suppliers
+
+Authorization: Bearer <token>
+Idempotency-Key: M001-POS01-SUP-000001
+
+{
+  "merchant_id": "M001",
+  "supplier_code": "ACME",
+  "name": "ACME Supplies",
+  "contact_person": "Jane Doe",
+  "phone": "+255700000000",
+  "email": "jane@acme.example",
+  "address": "Dar es Salaam",
+  "tax_id": "TIN123",
+  "payment_terms": "NET_30"
+}
+
+{
+  "success": true,
+  "supplier_id": "...",
+  "event_id": "...",
+  "event_type": "SUPPLIER_CREATED",
+  "version": 1
+}
+
+PATCH /suppliers
+
+Authorization: Bearer <token>
+Idempotency-Key: M001-POS01-SUP-000002
+X-Expected-Version: 1
+
+{
+  "merchant_id": "M001",
+  "supplier_id": "...",
+  "payment_terms": "NET_14"
+}
+
+POST /suppliers/deactivate
+Authorization: Bearer <token>
+Idempotency-Key: M001-POS01-SUP-000003
+X-Expected-Version: 2
+
+{
+  "merchant_id": "M001",
+  "supplier_id": "...",
+  "reason": "No longer active"
+}
+
+GET /suppliers/{merchant_id}
+?include_inactive=true
+
+GET /suppliers/{merchant_id}/search?q=acme
+
+GET /suppliers/{merchant_id}/{supplier_id}
+{
+  "supplier_id": "...",
+  "merchant_id": "M001",
+  "supplier_code": "ACME",
+  "name": "ACME Supplies",
+  "contact_person": "Jane Doe",
+  "phone": "+255700000000",
+  "email": "jane@acme.example",
+  "address": "Dar es Salaam",
+  "tax_id": "TIN123",
+  "payment_terms": "NET_30",
+  "active": true,
+  "version": 1,
+  "created_at": "...",
+  "updated_at": "..."
+}
+
 
 # Inventory
 

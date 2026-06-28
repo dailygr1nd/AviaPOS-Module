@@ -31,6 +31,7 @@ from modules.receivables.api import router as receivables_router
 from modules.sales.api import router as sales_router
 from modules.sync.api import router as sync_router
 from modules.users.api import router as auth_router
+from modules.suppliers.api import router as suppliers_router
 
 from modules.control_center.api_integrity import (
     router as integrity_router
@@ -87,6 +88,10 @@ app.include_router(
 app.include_router(
     customers_router
 )
+
+app.include_router(
+    suppliers_router
+)   
 
 app.include_router(
     sales_router
