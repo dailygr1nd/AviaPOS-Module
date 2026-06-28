@@ -337,3 +337,32 @@ Inventory Projector
 inventory_projection
 
 
+
+## Sales Command Flow
+
+Sales now use the hardened AviaPOS write flow.
+
+```text
+Sales API
+    ↓
+CreateSaleCommand
+    ↓
+Command Bus
+    ↓
+CreateSaleCommandHandler
+    ↓
+Unit of Work
+    ↓
+SALE_CREATED + SALE_LINE_ADDED + SALE_COMPLETED
+    +
+outbox messages
+    +
+idempotency record
+    ↓
+Outbox Publisher
+    ↓
+Redis Streams
+    ↓
+Sales Projector
+    ↓
+sale_projection

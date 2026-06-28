@@ -32,6 +32,10 @@ from modules.receivables.projector import (
     ReceivableProjector
 )
 
+from modules.sales.projector import (
+    SalesProjector
+)
+
 
 def _build_event(
     data: dict
@@ -112,6 +116,10 @@ def start_projection_worker():
         ),
 
         ReceivableProjector(
+            db
+        ),
+
+        SalesProjector(
             db
         )
 

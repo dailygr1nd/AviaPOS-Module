@@ -1,44 +1,255 @@
-from core.events.types import EventType
+from datetime import datetime
 
-from modules.sales.projection import sales
+from infrastructure.projections.base_projector import (
+    BaseProjector
+)
+
+from modules.sales.models import (
+    SaleProjection
+)
 
 
-class SalesProjector:
+class SalesProjector(
+    BaseProjector
+):
 
-    @staticmethod
-    def reset():
+    projection_name = "sale_projection"
 
-        sales.clear()
+    def __init__(
+        self,
+        db
+    ):
 
-    @staticmethod
-    def apply(event):
+        self.db = db
 
-        event_type = event["event_type"]
-        payload = event["payload"]
+    def handle(
+        self,
+        event
+    ):
 
-        if event_type == EventType.SALE_CREATED.value:
+        if event.event_type == "SALE_CREATED":
 
-            sales[payload["sale_id"]] = {
+            self.create(
+                event
+            )
 
-                "sale_id": payload["sale_id"],
-                "customer_id": payload.get("customer_id"),
-                "lines": [],
-                "total": 0,
-                "status": "OPEN"
+        elif event.event_type == "SALE_LINE_ADDED":
 
-            }
+            self.add_line(
+                event
+            )
 
-        elif event_type == EventType.SALE_LINE_ADDED.value:
+        elif event.event_type == "SALE_COMPLETED":
 
-            sale = sales[payload["sale_id"]]
+            self.complete(
+                event
+            )
 
-            sale["lines"].append(payload)
-            sale["total"] += payload["line_total"]
+        elif event.event_type == "SALE_CANCELLED":
 
-        elif event_type == EventType.SALE_COMPLETED.value:
+            self.cancel(
+                event
+            )
 
-            sales[payload["sale_id"]]["status"] = "COMPLETED"
+    def create(
+        self,
+        event
+    ):
 
-        elif event_type == EventType.SALE_CANCELLED.value:
+        payload = event.payload
 
-            sales[payload["sale_id"]]["status"] = "CANCELLED"
+        existing = (
+
+            self.db.query(
+                SaleProjection
+            )
+
+            .filter(
+                SaleProjection.sale_id
+                == payload["sale_id"]
+            )
+
+            .first()
+
+        )
+
+        if existing:
+
+            return
+
+        row = SaleProjection(
+
+            sale_id=
+                payload["sale_id"],
+
+            merchant_id=
+                payload["merchant_id"],
+
+            branch_id=
+                payload["branch_id"],
+
+            customer_id=
+                payload.get(
+                    "customer_id"
+                ),
+
+            payment_method=
+                payload["payment_method"],
+
+            total=0,
+
+            status="OPEN",
+
+            lines=[],
+
+            version=
+                event.version,
+
+            created_at=datetime.utcnow(),
+
+            updated_at=datetime.utcnow()
+
+        )
+
+        self.db.add(
+            row
+        )
+
+        self.db.commit()
+
+    def add_line(
+        self,
+        event
+    ):
+
+        payload = event.payload
+
+        sale = (
+
+            self.db.query(
+                SaleProjection
+            )
+
+            .filter(
+                SaleProjection.sale_id
+                == payload["sale_id"]
+            )
+
+            .first()
+
+        )
+
+        if not sale:
+
+            return
+
+        lines = list(
+            sale.lines or []
+        )
+
+        line = {
+
+            "product_id":
+                payload["product_id"],
+
+            "sku":
+                payload["sku"],
+
+            "quantity":
+                payload["quantity"],
+
+            "unit_price":
+                payload["unit_price"],
+
+            "line_total":
+                payload["line_total"]
+
+        }
+
+        lines.append(
+            line
+        )
+
+        sale.lines = lines
+
+        sale.total += payload[
+            "line_total"
+        ]
+
+        sale.version = event.version
+
+        sale.updated_at = datetime.utcnow()
+
+        self.db.commit()
+
+    def complete(
+        self,
+        event
+    ):
+
+        payload = event.payload
+
+        sale = (
+
+            self.db.query(
+                SaleProjection
+            )
+
+            .filter(
+                SaleProjection.sale_id
+                == payload["sale_id"]
+            )
+
+            .first()
+
+        )
+
+        if not sale:
+
+            return
+
+        sale.status = "COMPLETED"
+
+        sale.total = payload[
+            "total"
+        ]
+
+        sale.version = event.version
+
+        sale.updated_at = datetime.utcnow()
+
+        self.db.commit()
+
+    def cancel(
+        self,
+        event
+    ):
+
+        payload = event.payload
+
+        sale = (
+
+            self.db.query(
+                SaleProjection
+            )
+
+            .filter(
+                SaleProjection.sale_id
+                == payload["sale_id"]
+            )
+
+            .first()
+
+        )
+
+        if not sale:
+
+            return
+
+        sale.status = "CANCELLED"
+
+        sale.version = event.version
+
+        sale.updated_at = datetime.utcnow()
+
+        self.db.commit()

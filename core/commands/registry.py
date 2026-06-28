@@ -64,6 +64,14 @@ def register_command_handlers():
         ReceiveInventoryCommandHandler
     )
 
+    from modules.sales.commands import (
+        CreateSaleCommand
+    )
+
+    from modules.sales.command_handlers import (
+        CreateSaleCommandHandler
+    )
+
     command_bus.register(
 
         CreateExpenseCommand,
@@ -157,6 +165,14 @@ def register_command_handlers():
         AdjustInventoryCommand,
 
         AdjustInventoryCommandHandler()
+
+    )
+
+    command_bus.register(
+
+        CreateSaleCommand,
+
+        CreateSaleCommandHandler()
 
     )
 
