@@ -17,29 +17,29 @@ def register_command_handlers():
         return command_bus
 
     from modules.expenses.commands import (
-        CreateExpenseCommand,
         ApproveExpenseCommand,
+        CreateExpenseCommand,
         PayExpenseCommand
     )
 
     from modules.expenses.command_handlers import (
-        CreateExpenseCommandHandler,
         ApproveExpenseCommandHandler,
+        CreateExpenseCommandHandler,
         PayExpenseCommandHandler
     )
 
     from modules.payments.commands import (
-        CreatePaymentCommand,
+        CancelPaymentCommand,
         CompletePaymentCommand,
-        FailPaymentCommand,
-        CancelPaymentCommand
+        CreatePaymentCommand,
+        FailPaymentCommand
     )
 
     from modules.payments.command_handlers import (
-        CreatePaymentCommandHandler,
+        CancelPaymentCommandHandler,
         CompletePaymentCommandHandler,
-        FailPaymentCommandHandler,
-        CancelPaymentCommandHandler
+        CreatePaymentCommandHandler,
+        FailPaymentCommandHandler
     )
 
     from modules.receivables.commands import (
@@ -50,6 +50,18 @@ def register_command_handlers():
     from modules.receivables.command_handlers import (
         CreateReceivableCommandHandler,
         RecordReceivablePaymentCommandHandler
+    )
+
+    from modules.inventory.commands import (
+        AdjustInventoryCommand,
+        DeductInventoryCommand,
+        ReceiveInventoryCommand
+    )
+
+    from modules.inventory.command_handlers import (
+        AdjustInventoryCommandHandler,
+        DeductInventoryCommandHandler,
+        ReceiveInventoryCommandHandler
     )
 
     command_bus.register(
@@ -121,6 +133,30 @@ def register_command_handlers():
         RecordReceivablePaymentCommand,
 
         RecordReceivablePaymentCommandHandler()
+
+    )
+
+    command_bus.register(
+
+        ReceiveInventoryCommand,
+
+        ReceiveInventoryCommandHandler()
+
+    )
+
+    command_bus.register(
+
+        DeductInventoryCommand,
+
+        DeductInventoryCommandHandler()
+
+    )
+
+    command_bus.register(
+
+        AdjustInventoryCommand,
+
+        AdjustInventoryCommandHandler()
 
     )
 

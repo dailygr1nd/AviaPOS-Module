@@ -308,3 +308,32 @@ Redis Streams
 Receivable Projector
     ↓
 receivable_projection
+
+
+
+## Inventory Command Flow
+
+Inventory now uses the same hardened write flow as Expenses, Payments, and Receivables.
+
+```text
+Inventory API
+    ↓
+Inventory Command
+    ↓
+Command Bus
+    ↓
+Inventory Command Handler
+    ↓
+Unit of Work
+    ↓
+events + outbox + idempotency
+    ↓
+Outbox Publisher
+    ↓
+Redis Streams
+    ↓
+Inventory Projector
+    ↓
+inventory_projection
+
+
