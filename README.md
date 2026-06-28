@@ -210,3 +210,21 @@ Control Center endpoints:
 ```text
 GET /control/integrity/merchant/{merchant_id}
 GET /control/integrity/aggregate/{merchant_id}/{aggregate_id}
+
+
+## Offline Sync Protocol
+
+AviaPOS is designed for offline-first operation.
+
+Android clients should maintain a local SQLite event/command queue.
+
+When the device is offline, business actions are stored locally.
+
+When connectivity returns, the device pushes pending client events to AviaPOS.
+
+```text
+Android SQLite
+    ↓
+POST /sync/push
+    ↓
+sync_inbox_events
