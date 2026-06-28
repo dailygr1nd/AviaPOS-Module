@@ -96,6 +96,18 @@ def register_command_handlers():
         UpdateCustomerCommandHandler
     )
 
+    from modules.branches.commands import (
+        CreateBranchCommand,
+        DeactivateBranchCommand,
+        UpdateBranchCommand
+    )
+
+    from modules.branches.command_handlers import (
+        CreateBranchCommandHandler,
+        DeactivateBranchCommandHandler,
+        UpdateBranchCommandHandler
+    )
+
     command_bus.register(
 
         CreateExpenseCommand,
@@ -110,6 +122,21 @@ def register_command_handlers():
 
         ApproveExpenseCommandHandler()
 
+    )
+
+    command_bus.register(
+        CreateBranchCommand,
+        CreateBranchCommandHandler()
+    )
+
+    command_bus.register(
+        UpdateBranchCommand,
+        UpdateBranchCommandHandler()
+    )
+
+    command_bus.register(
+        DeactivateBranchCommand,
+        DeactivateBranchCommandHandler()
     )
 
     command_bus.register(

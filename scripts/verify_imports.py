@@ -72,6 +72,14 @@ ACTIVE_IMPORTS = [
     "modules.dashboard.query_service",
     "modules.dashboard.schemas",
 
+    "modules.branches.api",
+    "modules.branches.commands",
+    "modules.branches.command_handlers",
+    "modules.branches.models",
+    "modules.branches.projector",
+    "modules.branches.query_service",
+    "modules.branches.schemas",
+
     "modules.sales.api",
     "modules.sales.commands",
     "modules.sales.command_handlers",

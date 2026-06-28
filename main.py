@@ -20,6 +20,7 @@ from infrastructure.redis.start_worker import (
     launch_workers
 )
 
+from modules.branches.api import router as branches_router
 from modules.customers.api import router as customers_router
 from modules.dashboard.api import router as dashboard_router
 from modules.expenses.api import router as expenses_router
@@ -73,6 +74,10 @@ app.include_router(
 
 app.include_router(
     dashboard_router
+)
+
+app.include_router(
+    branches_router
 )
 
 app.include_router(

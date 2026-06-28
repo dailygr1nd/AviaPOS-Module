@@ -44,6 +44,7 @@ from modules.sales.projector import (
     SalesProjector
 )
 
+from modules.branches.projector import BranchProjector
 
 def _build_event(
     data: dict
@@ -110,6 +111,17 @@ def start_projection_worker():
     db = SessionLocal()
 
     projectors = [
+
+        projectors = [
+        BranchProjector(db),
+        ProductProjector(db),
+        CustomerProjector(db),
+        InventoryProjector(db),
+        ExpenseProjector(db),
+        PaymentProjector(db),
+        ReceivableProjector(db),
+        SalesProjector(db)
+    ]
 
         ProductProjector(
             db
