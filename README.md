@@ -228,3 +228,24 @@ Android SQLite
 POST /sync/push
     ↓
 sync_inbox_events
+
+
+
+## Auth and RBAC
+
+AviaPOS uses merchant-scoped authentication.
+
+Each user belongs to a merchant and has a role.
+
+Supported roles:
+
+- OWNER
+- MANAGER
+- CASHIER
+- INVENTORY_CLERK
+- ACCOUNTANT
+
+Flutter authenticates using:
+
+```text
+POST /auth/login

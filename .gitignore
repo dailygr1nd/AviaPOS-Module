@@ -72,3 +72,10 @@ migration_scratch/
 local_events*.json
 sync-test-*.json
 offline-queue-*.json
+
+
+# Secrets and auth scratch
+*.pem
+*.key
+auth-test-*.json
+jwt-test-*.txt

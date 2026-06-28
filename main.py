@@ -29,6 +29,7 @@ from modules.expenses.api import router as expenses_router
 from modules.payments.api import router as payments_router
 from modules.receivables.api import router as receivables_router
 from modules.sync.api import router as sync_router
+from modules.users.api import router as auth_router
 
 from modules.control_center.api import router as control_router
 from modules.control_center.api_trace import router as trace_router
@@ -40,7 +41,7 @@ app = FastAPI(
 
     title="AviaPOS",
 
-    version="0.4.0"
+    version="0.5.0"
 
 )
 
@@ -64,6 +65,10 @@ def startup():
             f"Background worker startup skipped: {exc}"
         )
 
+
+app.include_router(
+    auth_router
+)
 
 app.include_router(
     sales_router,

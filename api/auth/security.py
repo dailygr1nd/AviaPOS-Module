@@ -1,3 +1,5 @@
+import os
+
 from datetime import (
     datetime,
     timedelta,
@@ -10,30 +12,55 @@ from passlib.context import (
     CryptContext
 )
 
+
 pwd_context = CryptContext(
 
-    schemes=["bcrypt"],
+    schemes=[
+        "bcrypt"
+    ],
 
     deprecated="auto"
+
 )
 
-SECRET_KEY = (
+
+SECRET_KEY = os.getenv(
+
+    "AVIAPOS_SECRET_KEY",
+
     "CHANGE_THIS_IN_PRODUCTION"
+
 )
 
-ALGORITHM = "HS256"
+ALGORITHM = os.getenv(
 
-ACCESS_TOKEN_MINUTES = 1440
+    "AVIAPOS_JWT_ALGORITHM",
+
+    "HS256"
+
+)
+
+ACCESS_TOKEN_MINUTES = int(
+
+    os.getenv(
+
+        "AVIAPOS_ACCESS_TOKEN_MINUTES",
+
+        "1440"
+
+    )
+
+)
+
 
 def hash_password(
-
     password: str
-
-):
+) -> str:
 
     return pwd_context.hash(
         password
     )
+
 
 def verify_password(
 
@@ -41,14 +68,16 @@ def verify_password(
 
     hashed_password: str
 
-):
+) -> bool:
 
     return pwd_context.verify(
 
         password,
 
         hashed_password
+
     )
+
 
 def create_access_token(
 
@@ -56,9 +85,11 @@ def create_access_token(
 
     merchant_id: str,
 
-    role: str
+    role: str,
 
-):
+    branch_id: str | None = None
+
+) -> str:
 
     expire = (
 
@@ -69,15 +100,15 @@ def create_access_token(
         +
 
         timedelta(
-            minutes=
-            ACCESS_TOKEN_MINUTES
+            minutes=ACCESS_TOKEN_MINUTES
         )
 
     )
 
     payload = {
 
-        "sub": user_id,
+        "sub":
+            user_id,
 
         "merchant_id":
             merchant_id,
@@ -85,8 +116,12 @@ def create_access_token(
         "role":
             role,
 
+        "branch_id":
+            branch_id,
+
         "exp":
             expire
+
     }
 
     return jwt.encode(
@@ -95,16 +130,14 @@ def create_access_token(
 
         SECRET_KEY,
 
-        algorithm=
-        ALGORITHM
+        algorithm=ALGORITHM
+
     )
 
 
 def decode_token(
-
     token: str
-
-):
+) -> dict:
 
     return jwt.decode(
 
@@ -115,4 +148,5 @@ def decode_token(
         algorithms=[
             ALGORITHM
         ]
+
     )
