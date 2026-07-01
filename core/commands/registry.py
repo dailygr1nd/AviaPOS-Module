@@ -120,6 +120,20 @@ def register_command_handlers():
         UpdateBranchCommandHandler
     )
 
+    from modules.payment_capture.commands import (
+    CaptureExternalPaymentCommand,
+    FailPaymentCaptureCommand,
+    MatchPaymentCaptureCommand,
+    ReconcilePaymentCaptureCommand
+)
+
+    from modules.payment_capture.command_handlers import (
+    CaptureExternalPaymentCommandHandler,
+    FailPaymentCaptureCommandHandler,
+    MatchPaymentCaptureCommandHandler,
+    ReconcilePaymentCaptureCommandHandler
+)
+
     from modules.transfers.commands import (
     CancelTransferCommand,
     ConfirmFundsMovementCommand,
@@ -306,6 +320,26 @@ def register_command_handlers():
 
         RecordReceivablePaymentCommandHandler()
 
+    )
+
+    command_bus.register(
+    CaptureExternalPaymentCommand,
+    CaptureExternalPaymentCommandHandler()
+    )
+
+    command_bus.register(
+    MatchPaymentCaptureCommand,
+    MatchPaymentCaptureCommandHandler()
+    )
+
+    command_bus.register(
+    ReconcilePaymentCaptureCommand,
+    ReconcilePaymentCaptureCommandHandler()
+    )
+
+    command_bus.register(
+    FailPaymentCaptureCommand,
+    FailPaymentCaptureCommandHandler()
     )
 
     command_bus.register(

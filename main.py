@@ -12,6 +12,8 @@ from infrastructure.reactions.bootstrap import (
     launch_reaction_workers
 )
 
+
+
 from infrastructure.redis.bootstrap import (
     bootstrap_redis
 )
@@ -34,6 +36,7 @@ from modules.users.api import router as auth_router
 from modules.suppliers.api import router as suppliers_router
 from modules.purchases.api import router as purchases_router
 from modules.transfers.api import router as transfers_router
+from modules.payment_capture.api import router as payment_capture_router
 
 
 from modules.control_center.api_integrity import (
@@ -102,6 +105,10 @@ app.include_router(
 
 app.include_router(
     transfers_router
+)   
+
+app.include_router(
+    payment_capture_router
 )   
 
 app.include_router(

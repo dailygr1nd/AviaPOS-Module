@@ -14,8 +14,12 @@ REACTION_WORKERS = [
     (
         "infrastructure.reactions.transfer_reaction_worker",
         "start_transfer_reaction_worker"
+    ),
+    (
+        "infrastructure.reactions.payment_capture_reaction_worker",
+        "start_payment_capture_reaction_worker"
     )
-]
+    ]
 
 
 def _launch_worker(target):

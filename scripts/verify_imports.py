@@ -161,6 +161,21 @@ ACTIVE_IMPORTS = [
     "infrastructure.reactions.transfer_reaction_worker",
 
 
+    "modules.payment_capture.api",
+    "modules.payment_capture.commands",
+    "modules.payment_capture.command_handlers",
+    "modules.payment_capture.constants",
+    "modules.payment_capture.models",
+    "modules.payment_capture.projector",
+    "modules.payment_capture.query_service",
+    "modules.payment_capture.reactions",
+    "modules.payment_capture.schemas",
+    "modules.payment_capture.adapters.base",
+    "modules.payment_capture.adapters.mpesa",
+    "modules.payment_capture.adapters.registry",
+    "infrastructure.reactions.payment_capture_reaction_worker",
+
+
     "modules.receivables.api",
     "modules.receivables.commands",
     "modules.receivables.command_handlers",

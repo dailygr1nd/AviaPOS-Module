@@ -2164,7 +2164,21 @@ TRANSFER
 RAILONE_INTENT
 ```
 
----
+
+# 19. Payment Capture
+
+Payment Capture records external provider payment evidence.
+
+Examples:
+
+```text
+M-PESA Till payment
+M-PESA Paybill payment
+bank transfer reference
+card provider reference
+mobile money reference
+manual payment confirmation
+
 
 # 19. Merchant Payment Capture
 
@@ -2212,7 +2226,143 @@ received_at
 
 This can later become a dedicated `payment_capture` module or provider adapter layer.
 
----
+## Capture External Payment
+
+POST /payment-captures
+
+### Headers
+
+Authorization: Bearer <token>
+Idempotency-Key: M001-POS01-CAP-000001
+
+### Body
+
+{
+  "merchant_id": "M001",
+  "branch_id": "B001",
+  "provider": "MPESA",
+  "provider_channel": "MPESA_PAYBILL",
+  "provider_reference": "RGT123456",
+  "external_reference": "PAYBILL-REF-001",
+  "payer_reference": "+254700000000",
+  "payer_name": "John Doe",
+  "amount": 2500,
+  "currency": "KES",
+  "payment_method": "MOBILE_MONEY",
+  "reference_type": "SALE",
+  "reference_id": "SALE001",
+  "railone_intent_id": null,
+  "raw_payload": {}
+}
+
+If reference_type and reference_id are provided, the capture is immediately MATCHED.
+
+If not provided, the capture is stored as CAPTURED and can be matched later.
+
+## Match Payment Capture
+POST /payment-captures/match
+
+### Headers
+Authorization: Bearer <token>
+Idempotency-Key: M001-POS01-CAP-000002
+X-Expected-Version: 1
+
+### Body
+{
+  "merchant_id": "M001",
+  "capture_id": "...",
+  "reference_type": "SALE",
+  "reference_id": "SALE001",
+  "notes": "Matched to sale after manual review"
+}
+
+## Reconcile Payment Capture
+POST /payment-captures/reconcile
+
+### Headers
+Authorization: Bearer <token>
+Idempotency-Key: M001-POS01-CAP-000003
+X-Expected-Version: 2
+
+### Body
+{
+  "merchant_id": "M001",
+  "capture_id": "...",
+  "reconciliation_state": "RECONCILED",
+  "provider_reference": "RGT123456",
+  "external_reference": "PAYBILL-REF-001",
+  "railone_intent_id": null,
+  "notes": "Confirmed against provider statement"
+}
+
+## Fail Payment Capture
+POST /payment-captures/fail
+
+### Headers
+Authorization: Bearer <token>
+Idempotency-Key: M001-POS01-CAP-000004
+X-Expected-Version: 1
+
+### Body
+{
+  "merchant_id": "M001",
+  "capture_id": "...",
+  "reason": "Provider reversed transaction",
+  "provider_reference": "RGT123456"
+}
+
+## List Payment Captures
+GET /payment-capture/{merchant_id}
+
+?status=CAPTURED
+?status=MATCHED
+?status=RECONCILED
+?status=FAILED
+?provider=MPESA
+?reference_type=SALE
+
+
+## Branch Payment Captures
+GET /payment-captures/{merchant_id}/branch/{branch_id}
+
+## Search Payment Captures
+GET /payment-captures/{merchant_id}/search?q=RGT123456
+
+## Payment Capture Detail
+GET /payment-captures/{merchant_id}/{capture_id}
+
+### Response Shape
+{
+  "capture_id": "...",
+  "merchant_id": "M001",
+  "branch_id": "B001",
+  "provider": "MPESA",
+  "provider_channel": "MPESA_PAYBILL",
+  "provider_reference": "RGT123456",
+  "external_reference": "PAYBILL-REF-001",
+  "payer_reference": "+254700000000",
+  "payer_name": "John Doe",
+  "amount": 2500,
+  "currency": "KES",
+  "payment_method": "MOBILE_MONEY",
+  "reference_type": "SALE",
+  "reference_id": "SALE001",
+  "payment_id": null,
+  "railone_intent_id": null,
+  "status": "MATCHED",
+  "reconciliation_state": "MATCHED",
+  "reason": null,
+  "notes": null,
+  "raw_payload": {},
+  "capture_metadata": {
+    "custody_model": "NON_CUSTODIAL",
+    "funds_held_by_avia": false
+  },
+  "version": 1,
+  "received_at": "...",
+  "created_at": "...",
+  "updated_at": "..."
+}
 
 # 20. Receivables
 

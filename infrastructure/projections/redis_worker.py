@@ -48,6 +48,8 @@ from modules.sales.projector import (
     SalesProjector
 )
 
+from modules.payment_capture.projector import PaymentCaptureProjector
+
 from modules.transfers.projector import TransferProjector
 
 from modules.purchases.projector import PurchaseProjector
@@ -134,6 +136,9 @@ def _build_projectors(
         TransferProjector(
             db
         ),
+    
+        PaymentCaptureProjector(db),
+
 
         InventoryProjector(
             db
